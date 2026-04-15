@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 type RevealProps = {
   children: React.ReactNode;
   delay?: number;
-  as?: keyof JSX.IntrinsicElements;
   className?: string;
   threshold?: number;
 };
@@ -13,11 +12,10 @@ type RevealProps = {
 export function Reveal({
   children,
   delay = 0,
-  as = "div",
   className = "",
   threshold = 0.12,
 }: RevealProps) {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -44,14 +42,13 @@ export function Reveal({
     return () => obs.disconnect();
   }, [threshold]);
 
-  const Tag = as as keyof JSX.IntrinsicElements;
   return (
-    <Tag
-      ref={ref as React.Ref<HTMLElement>}
+    <div
+      ref={ref}
       className={`reveal ${visible ? "reveal-visible" : ""} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
-    </Tag>
+    </div>
   );
 }
