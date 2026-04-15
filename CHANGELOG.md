@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-15
+
+### Added
+- Custom branded 404 page at `app/not-found.tsx`.
+- Global route loading indicator at `app/loading.tsx`.
+- Schema.org JSON-LD for Organization, WebSite, SoftwareApplication.
+- `/docs` index page with four section cards.
+- `/registry` full-page browse table with filter chips.
+- `/whitepaper` long-form protocol paper with sticky TOC.
+- `vercel.json` pinning region, caching, and three vanity redirects.
+- `.env.example` documenting current and future environment keys.
+- `prefers-reduced-motion` support across CSS animations.
+- `:focus-visible` keyboard focus ring in brand blue.
+
+### Changed
+- Nav links now use absolute `/#anchor` form and route to real
+  `/registry` and `/whitepaper` pages instead of home anchors only.
+
 ## [0.3.0] - 2026-04-15
 
 ### Added
