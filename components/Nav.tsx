@@ -7,11 +7,12 @@ import { Logo } from "@/components/Logo";
 import { siteConfig } from "@/site.config";
 
 const NAV_LINKS = [
-  { href: "#protocol", label: "Protocol" },
-  { href: "#registry", label: "Registry" },
-  { href: "#economics", label: "Economics" },
-  { href: "#agents", label: "For Agents" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/#protocol", label: "Protocol" },
+  { href: "/registry", label: "Registry" },
+  { href: "/#economics", label: "Economics" },
+  { href: "/#agents", label: "For Agents" },
+  { href: "/whitepaper", label: "Whitepaper" },
+  { href: "/#faq", label: "FAQ" },
 ] as const;
 
 export function Nav() {
