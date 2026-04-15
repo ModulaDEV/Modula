@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { GlobalEffects } from "@/components/GlobalEffects";
+import { JsonLd } from "@/components/JsonLd";
 import { siteConfig } from "@/site.config";
 import "./globals.css";
 
@@ -85,6 +86,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrains.variable}`}>
       <body>
+        <JsonLd />
         <GlobalEffects />
         <div className="page-shell">
           <Nav />
