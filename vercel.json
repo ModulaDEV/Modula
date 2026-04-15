@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install --no-audit --no-fund",
+  "regions": ["iad1"],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/x", "destination": "https://x.com/modulabase", "permanent": false },
+    { "source": "/twitter", "destination": "https://x.com/modulabase", "permanent": false },
+    { "source": "/github", "destination": "https://github.com/ModulaDEV/Modula", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/favicon.svg",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/_next/static/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
