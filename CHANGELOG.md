@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-15
+
+### Added
+- `docs/backend-architecture/` — 38-page canonical backend design doc.
+  - `document.html` — corporate-styled, print-optimized source.
+  - `Modula-Backend-Architecture.pdf` — rendered 1.4 MB PDF.
+  - `render.sh` — one-command headless-Chrome regeneration.
+  - `README.md` — folder index + TOC.
+- README section linking the architecture PDF as the canonical
+  source of truth for backend implementation.
+
 ## [0.4.0] - 2026-04-15
 
 ### Added
