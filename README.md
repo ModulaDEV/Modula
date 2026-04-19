@@ -228,6 +228,16 @@ all protocol metadata lives in `site.config.ts`.
 
 ---
 
+## 📐 Backend Architecture
+
+The full design of what we are about to build — contracts, MCP gateway, x402 payment layer, indexer, runtime adapter, infrastructure, and the 50 / 50 sorrowz / powerz delivery plan — is a 38-page architecture document in this repo.
+
+📄 **[Modula-Backend-Architecture.pdf](./docs/backend-architecture/Modula-Backend-Architecture.pdf)** — the rendered document
+🧾 **[document.html](./docs/backend-architecture/document.html)** — the source
+🔁 **[render.sh](./docs/backend-architecture/render.sh)** — headless-Chrome render script
+
+Sections covered: executive summary · protocol overview · ERC-7527 / x402 / MCP primer · system architecture · contracts · gateway · x402 middleware · indexer · runtime · frontend wiring · infrastructure · workflow · file-by-file ownership · 10-week timeline · risks.
+
 ## 🧭 Roadmap
 
 - [x] **Q1 2026** · Protocol whitepaper + landing site
