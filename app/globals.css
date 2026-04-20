@@ -419,34 +419,6 @@ button {
     0 24px 50px -22px rgba(0, 82, 255, 0.45);
 }
 
-/* Card shine sweep — translucent highlight passes diagonally on hover.
-   z-index: -1 keeps it behind content (card has isolation: isolate,
-   so this still paints above the card's own background). */
-.card::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -60%;
-  width: 50%;
-  height: 200%;
-  background: linear-gradient(
-    110deg,
-    transparent 30%,
-    rgba(0, 82, 255, 0.1) 50%,
-    transparent 70%
-  );
-  transform: translate3d(0, 0, 0) skewX(-18deg);
-  transition: transform 0.9s var(--ease-out);
-  pointer-events: none;
-  z-index: -1;
-  border-radius: inherit;
-  will-change: transform;
-}
-
-.card:hover::after {
-  transform: translate3d(380%, 0, 0) skewX(-18deg);
-}
-
 /* Card variants */
 .card-glow {
   background:
