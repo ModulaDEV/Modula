@@ -35,9 +35,7 @@ const COLS = [
     title: "Network",
     links: [
       { href: siteConfig.twitter, label: "X / Twitter", external: true },
-      { href: siteConfig.buyUrl, label: "Buy $MODULA", external: true },
       { href: siteConfig.baseExplorerUrl, label: "Basescan", external: true },
-      { href: "https://base.org", label: "Built on Base", external: true },
     ],
   },
 ] as const;
