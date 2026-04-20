@@ -9,7 +9,7 @@ export const siteConfig = {
   url: "https://modula.base",
   twitter: "https://x.com/modulabase",
   twitterHandle: "@modulabase",
-  githubUrl: "",
+  githubUrl: "https://github.com/ModulaDEV/Modula",
   docsPath: "/docs",
   registryPath: "/registry",
   tokenPath: "/token",
