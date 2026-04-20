@@ -21,16 +21,35 @@ export function Stats() {
                 whileHover={{ y: -4 }}
                 transition={{ type: "spring", stiffness: 280, damping: 22 }}
                 className="card card-glow"
-                style={{ padding: "1.5rem 1.6rem", borderRadius: 16 }}
+                style={{
+                  padding: "1.6rem 1.7rem",
+                  borderRadius: 18,
+                  position: "relative",
+                  overflow: "hidden",
+                }}
               >
                 <div
+                  aria-hidden="true"
                   style={{
-                    fontSize: "clamp(1.8rem, 3.2vw, 2.4rem)",
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 140,
+                    height: 140,
+                    background:
+                      "radial-gradient(circle at 70% 30%, rgba(0,82,255,0.12), transparent 60%)",
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  className="gradient-text"
+                  style={{
+                    fontSize: "clamp(1.9rem, 3.4vw, 2.55rem)",
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
-                    color: "var(--ink)",
                     lineHeight: 1,
-                    marginBottom: "0.55rem",
+                    marginBottom: "0.6rem",
+                    position: "relative",
                   }}
                 >
                   {s.k}
@@ -39,8 +58,10 @@ export function Stats() {
                   style={{
                     fontSize: 14.5,
                     color: "var(--ink)",
-                    fontWeight: 500,
-                    marginBottom: "0.25rem",
+                    fontWeight: 600,
+                    marginBottom: "0.3rem",
+                    letterSpacing: "-0.005em",
+                    position: "relative",
                   }}
                 >
                   {s.line}
@@ -50,7 +71,8 @@ export function Stats() {
                     margin: 0,
                     color: "var(--ink-60)",
                     fontSize: 13,
-                    lineHeight: 1.55,
+                    lineHeight: 1.6,
+                    position: "relative",
                   }}
                 >
                   {s.sub}

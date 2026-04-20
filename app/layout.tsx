@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { GlobalEffects } from "@/components/GlobalEffects";
+import { ScrollProgress } from "@/components/ScrollProgress";
 import { JsonLd } from "@/components/JsonLd";
 import { siteConfig } from "@/site.config";
 import "./globals.css";
@@ -88,6 +89,7 @@ export default function RootLayout({
       <body>
         <JsonLd />
         <GlobalEffects />
+        <ScrollProgress />
         <div className="page-shell">
           <Nav />
           <main style={{ paddingTop: "var(--nav-h)" }}>{children}</main>

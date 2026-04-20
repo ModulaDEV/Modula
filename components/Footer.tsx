@@ -49,7 +49,8 @@ export function Footer() {
         position: "relative",
         borderTop: "1px solid var(--border)",
         padding: "4rem 0 2rem",
-        background: "var(--bg-soft)",
+        background:
+          "linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-softer) 100%)",
       }}
     >
       <div className="container">

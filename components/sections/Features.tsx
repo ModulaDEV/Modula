@@ -46,19 +46,7 @@ export function Features() {
                   height: "100%",
                 }}
               >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "var(--brand-soft)",
-                    border: "1px solid var(--brand-border)",
-                    color: "var(--brand)",
-                  }}
-                >
+                <div className="icon-tile">
                   <Icon size={18} strokeWidth={1.6} />
                 </div>
                 <h3

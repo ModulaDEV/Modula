@@ -226,16 +226,10 @@ export function Economics() {
                   }}
                 >
                   <div
+                    className="icon-tile"
                     style={{
                       width: 38,
                       height: 38,
-                      borderRadius: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "var(--brand-soft)",
-                      border: "1px solid var(--brand-border)",
-                      color: "var(--brand)",
                       flexShrink: 0,
                       marginTop: 1,
                     }}

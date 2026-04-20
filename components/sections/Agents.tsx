@@ -92,16 +92,11 @@ export function Agents() {
                       }}
                     >
                       <div
+                        className="icon-tile"
                         style={{
                           width: 34,
                           height: 34,
                           borderRadius: 8,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: "var(--brand-soft)",
-                          border: "1px solid var(--brand-border)",
-                          color: "var(--brand)",
                           flexShrink: 0,
                           marginTop: 2,
                         }}

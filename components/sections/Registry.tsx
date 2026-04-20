@@ -148,6 +148,7 @@ export function Registry() {
                   {MODELS.map((m, i) => (
                     <motion.tr
                       key={m.id}
+                      className="registry-row"
                       initial={{ opacity: 0, y: 6 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
@@ -223,6 +224,14 @@ export function Registry() {
           </motion.div>
         </Reveal>
       </div>
+      <style>{`
+        .registry-row {
+          transition: background 0.2s ease;
+        }
+        .registry-row:hover {
+          background: var(--brand-softer);
+        }
+      `}</style>
     </section>
   );
 }
