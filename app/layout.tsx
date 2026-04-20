@@ -68,7 +68,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/modula-logo.jpg", type: "image/jpeg" }],
+    shortcut: [{ url: "/modula-logo.jpg", type: "image/jpeg" }],
+    apple: [{ url: "/modula-logo.jpg", type: "image/jpeg" }],
   },
 };
 

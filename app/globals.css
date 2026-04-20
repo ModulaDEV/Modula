@@ -509,27 +509,6 @@ button {
     linear-gradient(180deg, #fafbff 0%, #f3f6ff 100%);
 }
 
-.fx-canvas-wrap {
-  position: absolute;
-  inset: 0;
-  opacity: 0.5;
-  mask-image: linear-gradient(
-    180deg,
-    transparent 0%,
-    black 18%,
-    black 82%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    transparent 0%,
-    black 18%,
-    black 82%,
-    transparent 100%
-  );
-  will-change: opacity;
-}
-
 .fx-grid {
   position: absolute;
   inset: 0;
