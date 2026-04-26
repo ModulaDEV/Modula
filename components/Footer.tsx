@@ -75,7 +75,7 @@ export function Footer() {
               }}
             >
               A permissionless, on-chain registry for AI models.
-              Pay-per-inference. Agent-native. Built on Base.
+              Pay-per-inference. Agent-native. Built on @Base.
             </p>
             <div style={{ display: "flex", gap: 10, marginTop: "1.25rem" }}>
               <a

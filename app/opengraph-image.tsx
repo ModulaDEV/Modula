@@ -83,7 +83,7 @@ export default async function OgImage() {
               opacity: 0.92,
             }}
           >
-            Permissionless. On-chain. Agent-native. Built on Base.
+            Permissionless. On-chain. Agent-native. Built on @Base.
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export default async function OgImage() {
             opacity: 0.85,
           }}
         >
-          <div>modula.base</div>
+          <div>modulabase.org</div>
           <div>© {siteConfig.launchYear} Modula Protocol</div>
         </div>
       </div>

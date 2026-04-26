@@ -5,10 +5,10 @@ import { Terminal, Cpu, Plug, CheckCircle2 } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 const TERMINAL_LINES: ReadonlyArray<{ k: "cmd" | "out" | "ok"; text: string }> = [
-  { k: "cmd", text: "$ agent discover --registry modula.base" },
+  { k: "cmd", text: "$ agent discover --registry modulabase.org" },
   { k: "out", text: "↳ 1,248 models indexed · 412 MCP endpoints live" },
   { k: "cmd", text: "$ agent use modula:solidity-audit-v3" },
-  { k: "out", text: "↳ Endpoint: https://mcp.modula.base/m/0x4a7f…b12c" },
+  { k: "out", text: "↳ Endpoint: https://mcp.modulabase.org/m/0x4a7f…b12c" },
   { k: "out", text: "↳ Pricing:  0.0021 USDC / call · x402" },
   { k: "cmd", text: "$ agent call solidity-audit-v3 --input ./contract.sol" },
   { k: "out", text: "↳ x402: signing payment · 0.0021 USDC → 0x4a7f…b12c" },

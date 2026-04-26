@@ -29,7 +29,7 @@ export function Hero() {
           >
             <span className="kicker">
               <span className="dot" />
-              Permissionless AI on Base · ERC-7527
+              Permissionless AI on @Base · ERC-7527
             </span>
 
             <h1
