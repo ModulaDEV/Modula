@@ -6,16 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-04-15
+## [0.5.0] - 2026-04-26
 
 ### Added
-- `docs/backend-architecture/` — 38-page canonical backend design doc.
-  - `document.html` — corporate-styled, print-optimized source.
-  - `Modula-Backend-Architecture.pdf` — rendered 1.4 MB PDF.
-  - `render.sh` — one-command headless-Chrome regeneration.
-  - `README.md` — folder index + TOC.
-- README section linking the architecture PDF as the canonical
-  source of truth for backend implementation.
+- `SECURITY.md` documenting the security disclosure process.
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
+- Public-facing README with brand badges and protocol primer.
+
+### Changed
+- Canonical site host updated to **www.modulabase.org**.
+- Brand tagline standardized as **Built on @Base** across UI.
+- README logo image switched to an absolute raw URL so social
+  previews and mirrored renderers (VS Code, Obsidian) display it.
 
 ## [0.4.0] - 2026-04-15
 
