@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="public/favicon.svg" width="88" alt="Modula" />
+<img src="https://raw.githubusercontent.com/ModulaDEV/Modula/main/public/favicon.svg" width="88" alt="Modula" />
 
 # Modula
 
 ### The tokenized AI model registry.
 
-**Permissionless · On-chain · Agent-native · Built on Base**
+**Permissionless · On-chain · Agent-native · Built on [@Base](https://base.org)**
 
 <br/>
 
@@ -15,7 +15,6 @@
 [![ERC-7527](https://img.shields.io/badge/Standard-ERC--7527-0052FF?style=for-the-badge&labelColor=0b1020)](#erc-7527)
 [![x402](https://img.shields.io/badge/Payments-x402-0052FF?style=for-the-badge&labelColor=0b1020)](#x402-pay-per-inference)
 [![MCP](https://img.shields.io/badge/Agents-MCP-0052FF?style=for-the-badge&labelColor=0b1020)](#mcp-endpoint-per-model)
-[![Year](https://img.shields.io/badge/Year-2026-0052FF?style=for-the-badge&labelColor=0b1020)](#)
 
 <br/>
 
@@ -23,17 +22,16 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Framer Motion](https://img.shields.io/badge/Framer_Motion-11-FF0055?style=flat-square&logo=framer&logoColor=white)](https://www.framer.com/motion/)
-[![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com)
 [![Status](https://img.shields.io/badge/Status-Live-22c55e?style=flat-square)](#)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-0052FF?style=flat-square)](./CONTRIBUTING.md)
 
 <br/>
 
-[🌐 modula.base](https://modula.base) ·
+[🌐 modulabase.org](https://www.modulabase.org) ·
 [𝕏 @modulabase](https://x.com/modulabase) ·
-[📄 Whitepaper](https://modula.base/whitepaper) ·
-[🧭 Registry](https://modula.base/registry) ·
-[📘 Docs](https://modula.base/docs)
+[📄 Whitepaper](https://www.modulabase.org/whitepaper) ·
+[🧭 Registry](https://www.modulabase.org/registry) ·
+[📘 Docs](https://www.modulabase.org/docs)
 
 </div>
 
@@ -136,7 +134,7 @@ protocol address never holds inference revenue.
 ## 🎨 This repo — what's in it
 
 This repository contains the **Modula landing site** (what you see
-when you visit `modula.base`). The on-chain contracts, SDK, and MCP
+when you visit `modulabase.org`). The on-chain contracts, SDK, and MCP
 server live in sibling repositories and ship under their own versions.
 
 ### Stack
@@ -268,7 +266,7 @@ Pull requests and issues are welcome. Read
 
 **Register a model. Or build an agent that uses one.**
 
-[🌐 modula.base](https://modula.base) · [𝕏 @modulabase](https://x.com/modulabase) · [📘 Docs](https://modula.base/docs)
+[🌐 modulabase.org](https://www.modulabase.org) · [𝕏 @modulabase](https://x.com/modulabase) · [📘 Docs](https://www.modulabase.org/docs)
 
 <sub>Built with ❤️ on Base · 2026</sub>
 
