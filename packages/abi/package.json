@@ -1,0 +1,32 @@
+{
+  "name": "@modula/abi",
+  "version": "0.1.0",
+  "description": "TypeScript-friendly ABI exports for the Modula on-chain protocol.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".":              { "import": "./dist/index.js",         "types": "./dist/index.d.ts" },
+    "./registry":     { "import": "./dist/registry.js",      "types": "./dist/registry.d.ts" },
+    "./factory":      { "import": "./dist/factory.js",       "types": "./dist/factory.d.ts" },
+    "./agency":       { "import": "./dist/agency.js",        "types": "./dist/agency.d.ts" },
+    "./app":          { "import": "./dist/app.js",           "types": "./dist/app.d.ts" },
+    "./access":       { "import": "./dist/access.js",        "types": "./dist/access.d.ts" },
+    "./erc20":        { "import": "./dist/erc20.js",         "types": "./dist/erc20.d.ts" },
+    "./addresses":    { "import": "./dist/addresses.js",     "types": "./dist/addresses.d.ts" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build":     "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "generate":  "tsx scripts/generate.ts",
+    "clean":     "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "tsx":        "^4.21.0",
+    "@types/node": "^20.0.0"
+  }
+}
