@@ -128,35 +128,52 @@ No API keys, no subscriptions, no manual top-ups.
 
 ## 🌐 This repository
 
-This is the **public, open-source** repository for the Modula landing
-site at [modulabase.org](https://www.modulabase.org).
+This is the **public, open-source** monorepo for the Modula protocol —
+the landing site at [modulabase.org](https://www.modulabase.org), the
+on-chain contracts, the typed ABI package, and the MCP gateway.
 
 ### Stack
 
-- **Framework**: Next.js 15 (App Router) + React 19
-- **Language**: TypeScript 5, strict mode
-- **Animation**: Framer Motion 11
-- **Fonts**: Inter + JetBrains Mono via `next/font`
-- **Icons**: lucide-react
-- **Linting**: ESLint 9, flat config
+- **Frontend**: Next.js 15 + React 19 + TypeScript + Framer Motion
+- **Contracts**: Solidity 0.8.24 + Foundry + OpenZeppelin 5
+- **Gateway**: Hono 4 + viem 2 + pino 9 + zod 3 (Node 22)
+- **ABI package**: TypeScript `as const` exports for viem / wagmi
+- **Linting**: ESLint 9 flat config
 
 ### Structure
 
 ```
 modula/
-├─ app/                   App Router routes + layout + globals.css
-│  ├─ docs/
-│  ├─ registry/
-│  ├─ whitepaper/
-│  ├─ opengraph-image.tsx
-│  ├─ robots.ts
-│  └─ sitemap.ts
-├─ components/            Shared + section components
-│  └─ sections/           Hero · Stats · HowItWorks · Features ·
-│                         Agents · Economics · Registry · Faq · CTA
-├─ data/                  Content datasets (typed, readonly)
-├─ public/                Static assets
-└─ site.config.ts         Single source of truth for brand strings
+├─ app/                   Next.js App Router (modulabase.org)
+├─ components/            Frontend section components
+├─ data/                  Static content datasets
+├─ public/                Frontend static assets
+├─ site.config.ts         Brand + URL constants
+│
+├─ contracts/             Solidity protocol — Foundry project
+│  ├─ src/
+│  │  ├─ ModulaRegistry.sol
+│  │  ├─ ModulaFactory.sol
+│  │  ├─ ModulaAgency.sol         ERC-7527 + bonding curve
+│  │  ├─ ModulaApp.sol            ERC-721, agency-gated mint/burn
+│  │  ├─ ModulaAccessRouter.sol   gateway-signed call logger
+│  │  ├─ interfaces/
+│  │  └─ libraries/               Errors, BondingCurve, SlugLib
+│  ├─ test/                       Foundry units + invariants + e2e
+│  └─ script/                     Deploy + ops runbooks
+│
+├─ packages/abi/          @modula/abi — typed ABI exports for viem/wagmi
+│  └─ src/
+│     ├─ registry.ts · factory.ts · agency.ts · app.ts · access.ts
+│     ├─ erc20.ts
+│     └─ addresses.ts             per-chain canonical addresses
+│
+└─ gateway/               @modula/gateway — MCP server + x402 middleware
+   └─ src/
+      ├─ server.ts · app.ts · config.ts · log.ts · errors.ts
+      ├─ chain/                   viem reads + writes + TTL cache
+      ├─ x402/                    PaymentRequirements + facilitator
+      └─ routes/                  healthz · manifest · mcp
 ```
 
 ---
