@@ -29,7 +29,15 @@ const Schema = z.object({
   REGISTRY_ADDRESS:      HexAddress.optional(),
   ACCESS_ROUTER_ADDRESS: HexAddress.optional(),
 
-  DATABASE_URL:           z.string().url(),
+  // Postgres connection URL. Accept anything that begins with the
+  // postgres / postgresql scheme — z.string().url() rejects valid
+  // libpq URIs that contain dots in the username (e.g. Supabase's
+  // pooler hosts user `postgres.<project-ref>`), so we don't lean
+  // on the WHATWG URL parser here.
+  DATABASE_URL: z.string().regex(
+    /^postgres(?:ql)?:\/\/.+/,
+    "must be a postgres:// or postgresql:// URI",
+  ),
   DATABASE_POOL_MAX:      z.coerce.number().int().min(1).max(64).default(10),
 
   // Block to begin tailing from when the cursor for a stream is 0.
