@@ -1,0 +1,116 @@
+# Grafana provisioning — alert rules.
+#
+# Apply via:
+#   Grafana → Alerting → Alert rules → Import (paste this file)
+# or via Terraform with the grafana_rule_group resource.
+#
+# Each rule routes to the "Modula on-call" contact point (configure
+# under Alerting → Contact points → New → PagerDuty integration key).
+
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: modula-services
+    folder: Modula
+    interval: 1m
+    rules:
+      # ---- 1. Indexer drift ----
+      - uid: modula-indexer-lag
+        title: Indexer lag > 30 blocks (5 min)
+        condition: B
+        for: 5m
+        annotations:
+          summary: Indexer is falling behind chain head.
+          description: |
+            registry_cursor has been more than 30 blocks behind chain_head
+            for over 5 minutes. Sustained drift means the read API is
+            serving stale models / calls.
+
+            Runbook: https://github.com/ModulaDEV/Modula/blob/main/observability/runbooks/indexer-lag.md
+        labels:
+          severity: warning
+          service:  indexer
+        data:
+          - refId: A
+            datasourceUid: loki
+            model:
+              expr: |
+                max_over_time(
+                  {service="modula-indexer"}
+                    | json
+                    | __error__=``
+                    | unwrap lag_blocks [1m]
+                )
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: { type: gt, params: [30] }
+
+      # ---- 2. Gateway 5xx ----
+      - uid: modula-gateway-5xx
+        title: Gateway 5xx rate > 1% (5 min)
+        condition: B
+        for: 5m
+        annotations:
+          summary: Gateway is returning 5xx at > 1% of requests.
+          description: |
+            5xx ratio over the last 5 minutes is over the 1% threshold.
+            Common root causes: facilitator down, runtime endpoints
+            timing out, OAuth issuer unreachable.
+
+            Runbook: https://github.com/ModulaDEV/Modula/blob/main/observability/runbooks/gateway-5xx.md
+        labels:
+          severity: critical
+          service:  gateway
+        data:
+          - refId: A
+            datasourceUid: loki
+            model:
+              expr: |
+                sum(rate({service="modula-gateway"} | json | status >= 500 [5m]))
+                /
+                sum(rate({service="modula-gateway"} | json | __error__=`` [5m]))
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: { type: gt, params: [0.01] }
+
+      # ---- 3. Facilitator failure ----
+      - uid: modula-facilitator-failure
+        title: Facilitator failure rate > 5% (5 min)
+        condition: B
+        for: 5m
+        annotations:
+          summary: x402 facilitator verify / settle is failing.
+          description: |
+            More than 5% of facilitator round-trips are failing. Check
+            Coinbase CDP status, our API key validity, and whether we
+            need to fail over to a backup facilitator.
+
+            Runbook: https://github.com/ModulaDEV/Modula/blob/main/observability/runbooks/facilitator-failure.md
+        labels:
+          severity: critical
+          service:  gateway
+          subsystem: x402
+        data:
+          - refId: A
+            datasourceUid: loki
+            model:
+              expr: |
+                sum(rate({service="modula-gateway"} |~ "x402_(verify|settle)_failed" [5m]))
+                /
+                sum(rate({service="modula-gateway"} |~ "x402_(verify|settle)_(ok|failed)" [5m]))
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: { type: gt, params: [0.05] }

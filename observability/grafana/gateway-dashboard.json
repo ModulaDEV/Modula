@@ -1,0 +1,119 @@
+{
+  "title": "Modula · Gateway",
+  "tags": ["modula", "gateway"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "loki",
+        "type": "datasource",
+        "query": "loki",
+        "current": { "text": "Loki", "value": "Loki" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Tools/call rate (per minute)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({service=\"modula-gateway\"} |~ \"tools_call_served\" [1m]))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "5xx error rate (5m)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 0.005 },
+              { "color": "red",    "value": 0.01 }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({service=\"modula-gateway\"} | json | status >= 500 [5m])) / sum(rate({service=\"modula-gateway\"} | json | __error__=`` [5m]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "x402 verify / settle outcomes",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({service=\"modula-gateway\"} |~ \"x402_(verify|settle)_(ok|failed)\" | json [1m])) by (event)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Latency p50 / p95 / p99 (ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "quantile_over_time(0.50, {service=\"modula-gateway\"} | json | __error__=`` | unwrap latency_ms [1m])",
+          "legendFormat": "p50"
+        },
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "quantile_over_time(0.95, {service=\"modula-gateway\"} | json | __error__=`` | unwrap latency_ms [1m])",
+          "legendFormat": "p95"
+        },
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "quantile_over_time(0.99, {service=\"modula-gateway\"} | json | __error__=`` | unwrap latency_ms [1m])",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Runtime (model) call failures",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({service=\"modula-gateway\"} |~ \"upstream\" | json [5m])) by (model)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "logs",
+      "title": "Recent gateway errors",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "{service=\"modula-gateway\"} | json | level=`error`"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "title": "Modula · Indexer",
+  "tags": ["modula", "indexer"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "loki",
+        "type": "datasource",
+        "query": "loki",
+        "current": { "text": "Loki", "value": "Loki" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Indexer lag (blocks)",
+      "description": "Difference between Base chain head and the registry cursor. Comes from /healthz on each /healthz scrape.",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "red",    "value": 100 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "max_over_time({service=\"modula-indexer\"} | json | __error__=`` | unwrap registry_cursor [1m])"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Healthz uptime (24h)",
+      "description": "Fraction of /healthz HTTP checks returning 200.",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({job=\"healthchecks\", target=\"indexer\", status=\"200\"}[24h])) / sum(rate({job=\"healthchecks\", target=\"indexer\"}[24h]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Events ingested per minute (by stream)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({service=\"modula-indexer\"} |~ \"_ingested\" | json [1m])) by (listener)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Listener tick errors",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "sum(rate({service=\"modula-indexer\"} |~ \"listener_tick_failed\" [5m])) by (listener)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "Recent errors",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "datasource": { "uid": "${loki}" },
+          "expr": "{service=\"modula-indexer\"} | json | level=`error`"
+        }
+      ]
+    }
+  ]
+}
