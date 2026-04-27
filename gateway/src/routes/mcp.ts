@@ -27,13 +27,15 @@ import type { Clients }     from "../chain/clients.js";
 import type { TtlCache }    from "../chain/cache.js";
 import type { Quote }       from "../chain/agency.js";
 import type { X402Network } from "../x402/types.js";
+import { fetchManifest, callRuntime, type ModelManifest } from "../runtime.js";
 
 interface McpDeps extends AppDeps {
-  clients:      Clients;
-  facilitator:  FacilitatorClient;
-  recordCache:  TtlCache<string, ModelRecord>;
-  quoteCache:   TtlCache<string, Quote>;
-  network:      X402Network;
+  clients:       Clients;
+  facilitator:   FacilitatorClient;
+  recordCache:   TtlCache<string, ModelRecord>;
+  quoteCache:    TtlCache<string, Quote>;
+  manifestCache: TtlCache<string, ModelManifest>;
+  network:       X402Network;
 }
 
 const PROTOCOL_VERSION = "2025-11-25";
@@ -94,13 +96,27 @@ async function handleListTools(deps: McpDeps, c: Context) {
       );
     });
 
+  // Manifest fetch is best-effort — a missing or malformed manifest
+  // still yields a valid tools/list with the on-chain record's
+  // baseline metadata, so discovery never fails on a creator's
+  // misconfigured ipfs.
+  const manifest = await fetchManifest(
+    { manifestCache: deps.manifestCache, log: deps.log },
+    record.manifestURI,
+  ).catch((err) => {
+    deps.log.warn({ err, slug: record.slug }, "manifest_fetch_failed");
+    return null;
+  });
+
   return rpcResult(undefined, {
     tools: [
       {
         name:        record.slug.replace(/[^a-zA-Z0-9_.-]/g, "_"),
-        title:       record.slug,
-        description: `Modula model — base ${record.baseModel}, type ${record.modelType}.`,
-        inputSchema: { type: "object" }, // refined when manifest fetch lands
+        title:       manifest?.name ?? record.slug,
+        description: manifest?.description
+          ?? `Modula model — base ${record.baseModel}, type ${record.modelType}.`,
+        inputSchema: manifest?.inputSchema ?? { type: "object" },
+        ...(manifest?.outputSchema ? { outputSchema: manifest.outputSchema } : {}),
       },
     ],
   });
@@ -110,22 +126,32 @@ async function handleCallTool(deps: McpDeps, c: Context, body: { id?: number | s
   const record   = c.get("x402:record" as never)   as ModelRecord;
   const agentEoa = c.get("x402:agent" as never)    as Address;
   const paid     = c.get("x402:paid" as never)     as bigint;
+  const args     = (body.params as { arguments?: unknown } | undefined)?.arguments ?? {};
 
-  // Inference proxy is wired in a later commit. For now we return a
-  // structured stub so the surface is reachable end-to-end against a
-  // dev facilitator.
+  // Forward to the model's runtime endpoint. UpstreamError on any
+  // failure (network, timeout, non-2xx, malformed output) bubbles
+  // to Hono's onError, which serializes it as a 502 — payment is
+  // already verified at this point but settle has not been invoked,
+  // so the agent's authorization expires uncharged.
+  const output = await callRuntime(
+    { manifestCache: deps.manifestCache, log: deps.log },
+    record,
+    args,
+  );
+
+  const isStringOutput = typeof output === "string";
   const result = {
     content: [
-      {
-        type: "text",
-        text: `[modula] tools/call accepted on ${record.slug}; runtime proxy not yet wired.`,
-      },
+      { type: "text", text: isStringOutput ? output : JSON.stringify(output) },
     ],
+    ...(isStringOutput ? {} : { structuredContent: output }),
     isError: false,
   };
 
-  // Best-effort access log (won't block the response).
-  void deps.log.info({ slug: record.slug, agent: agentEoa, paid: paid.toString() }, "tools_call_served");
+  void deps.log.info(
+    { slug: record.slug, agent: agentEoa, paid: paid.toString() },
+    "tools_call_served",
+  );
 
   // Submit the on-chain receipt asynchronously after the response goes out.
   queueMicrotask(async () => {
