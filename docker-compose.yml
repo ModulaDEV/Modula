@@ -1,0 +1,50 @@
+# Local dev stack — Postgres for the indexer, Anvil for the chain.
+#
+#   docker compose up -d          # bring both up
+#   docker compose logs -f anvil  # tail Anvil
+#   docker compose down -v        # tear down + drop the postgres volume
+#
+# The site, indexer, and gateway run on the host (not in containers)
+# so dev iteration stays fast — see DEVELOPMENT.md for the per-service
+# pnpm commands.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: modula-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB:       modula
+    ports:
+      - "5432:5432"
+    volumes:
+      - modula-pgdata:/var/lib/postgresql/data
+      # Auto-run the indexer migrations on first boot so a fresh
+      # `docker compose up -d` lands a ready-to-tail database.
+      - ./indexer/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:    ["CMD-SHELL", "pg_isready -U postgres -d modula"]
+      interval: 5s
+      timeout:  3s
+      retries:  10
+
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: modula-anvil
+    restart: unless-stopped
+    ports:
+      - "8545:8545"
+    # Fork Base mainnet so contract reads against established
+    # addresses (USDC) work without manual setup. Override
+    # FORK_URL via .env if you want a different fork target.
+    command: >
+      anvil
+      --host 0.0.0.0
+      --chain-id 8453
+      --fork-url ${FORK_URL:-https://mainnet.base.org}
+      --block-time 2
+
+volumes:
+  modula-pgdata:
