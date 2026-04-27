@@ -38,6 +38,13 @@ const Schema = z.object({
   X402_FACILITATOR_URL:     z.string().url(),
   X402_FACILITATOR_API_KEY: z.string().min(1),
 
+  // --- OAuth 2.1 (per MCP 2025-11-25 spec) ---
+  OAUTH_ENABLED:   z.coerce.boolean().default(false),
+  OAUTH_ISSUER:    z.string().url().optional(),
+  OAUTH_AUDIENCE:  z.string().min(1).optional(),
+  OAUTH_JWKS_URI:  z.string().url().optional(),
+  OAUTH_RESOURCE:  z.string().url().optional(),
+
   LOG_LEVEL: z
     .enum(["trace", "debug", "info", "warn", "error", "fatal"])
     .default("info"),
