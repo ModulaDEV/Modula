@@ -3,10 +3,11 @@ pragma solidity ^0.8.24;
 
 import {Clones}         from "@openzeppelin/contracts/proxy/Clones.sol";
 
-import {IModulaFactory} from "./interfaces/IModulaFactory.sol";
-import {Asset}          from "./interfaces/IERC7527.sol";
-import {IModulaApp}     from "./interfaces/IModulaApp.sol";
-import {IModulaAgency}  from "./interfaces/IModulaAgency.sol";
+import {IModulaFactory}  from "./interfaces/IModulaFactory.sol";
+import {IModulaRegistry} from "./interfaces/IModulaRegistry.sol";
+import {Asset}           from "./interfaces/IERC7527.sol";
+import {IModulaApp}      from "./interfaces/IModulaApp.sol";
+import {IModulaAgency}   from "./interfaces/IModulaAgency.sol";
 
 import {ModulaRegistry} from "./ModulaRegistry.sol";
 import {ModulaApp}      from "./ModulaApp.sol";
@@ -90,7 +91,7 @@ contract ModulaFactory is IModulaFactory {
         // (gas burned, contracts orphaned) but no Record is written —
         // i.e. the on-chain index never reflects a half-built model.
         ModulaRegistry(registry).register(
-            ModulaRegistry.Record({
+            IModulaRegistry.Record({
                 agency:       agency,
                 app:          app,
                 treasury:     asset.feeRecipient,
