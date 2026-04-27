@@ -109,7 +109,7 @@ contract ModulaAgency is IModulaAgency, ReentrancyGuard, Initializable {
     function getWrapOracle(bytes memory)
         public
         view
-        override(IERC7527Agency, IModulaAgency)
+        override(IERC7527Agency)
         returns (uint256 premium, uint256 fee)
     {
         Asset memory a = assetData;
@@ -122,7 +122,7 @@ contract ModulaAgency is IModulaAgency, ReentrancyGuard, Initializable {
     function getUnwrapOracle(bytes memory)
         public
         view
-        override(IERC7527Agency, IModulaAgency)
+        override(IERC7527Agency)
         returns (uint256 premium, uint256 fee)
     {
         Asset memory a = assetData;
