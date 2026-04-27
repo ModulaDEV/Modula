@@ -1,6 +1,7 @@
-# dependencies
-/node_modules
-/.pnp
+# dependencies (recursive — covers root + every workspace package)
+node_modules/
+dist/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -17,6 +18,14 @@
 
 # production
 /build
+
+# foundry / forge artifacts
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+
+# pnpm + npm
+package-lock.json
 
 # misc
 .DS_Store
