@@ -1,0 +1,10 @@
+# Backend services + contracts ship to their own hosts (Railway / Fly /
+# Foundry / Supabase) — they don't belong in the Vercel build context.
+# Excluding them here keeps the deploy upload small and prevents Next.js
+# from trying to typecheck their TS sources against the site's tsconfig.
+
+gateway
+indexer
+packages
+contracts
+docs/backend-architecture
