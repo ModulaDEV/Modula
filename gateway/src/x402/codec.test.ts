@@ -23,14 +23,14 @@ const samplePayload: PaymentPayload = {
   scheme:  "exact",
   network: "base",
   payload: {
-    signature: "0x" + "ab".repeat(65),
+    signature: ("0x" + "ab".repeat(65)) as `0x${string}`,
     authorization: {
       from:        "0x000000000000000000000000000000000000A11C",
       to:          "0x000000000000000000000000000000000000bEEF",
       value:       "1030",
       validAfter:  "1700000000",
       validBefore: "1700000060",
-      nonce:       "0x" + "12".repeat(32),
+      nonce:       ("0x" + "12".repeat(32)) as `0x${string}`,
     },
   },
 };

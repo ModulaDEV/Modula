@@ -55,5 +55,9 @@ export function createClients(config: Config): Clients {
     signerAddress = account.address;
   }
 
-  return { read, write, signerAddress };
+  return {
+    read:  read as PublicClient,
+    write: write as WalletClient | null,
+    signerAddress,
+  };
 }
