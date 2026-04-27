@@ -1,0 +1,5 @@
+packages:
+  - "gateway"
+  - "indexer"
+  - "packages/*"
+# packages/sdk is picked up by the packages/* glob above.
