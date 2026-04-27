@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Search } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
-import { MODELS } from "@/data/models";
+import { MODELS, type RegistryModel } from "@/data/models";
 import { siteConfig } from "@/site.config";
 
 function Sparkline({ points }: { points: readonly number[] }) {
@@ -39,7 +39,13 @@ function Sparkline({ points }: { points: readonly number[] }) {
   );
 }
 
-export function Registry() {
+interface RegistryProps {
+  /** Optional override — if provided, renders these instead of the mock array. */
+  models?: readonly RegistryModel[];
+}
+
+export function Registry({ models }: RegistryProps = {}) {
+  const rows = models && models.length > 0 ? models : MODELS;
   return (
     <section id="registry" className="section">
       <div className="container">
@@ -145,7 +151,7 @@ export function Registry() {
                   </tr>
                 </thead>
                 <tbody>
-                  {MODELS.map((m, i) => (
+                  {rows.map((m, i) => (
                     <motion.tr
                       key={m.id}
                       className="registry-row"

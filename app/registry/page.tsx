@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowUpRight, Search, Filter } from "lucide-react";
-import { MODELS } from "@/data/models";
+import { MODELS, type RegistryModel } from "@/data/models";
+import { listModels } from "@/lib/api";
+import { toRegistryModel } from "@/lib/adapters";
 import { siteConfig } from "@/site.config";
 
 export const metadata = {
@@ -9,7 +11,24 @@ export const metadata = {
     "Browse the Modula registry — fine-tuned AI models registered on-chain via ERC-7527, each with an MCP endpoint and a bonding-curve price.",
 };
 
-export default function RegistryPage() {
+export const revalidate = 30;
+
+export default async function RegistryPage() {
+  // Server-side fetch with graceful fallback to mock data so the page
+  // stays renderable in dev (no indexer running) and during platform
+  // failover.
+  let rows: readonly RegistryModel[] = MODELS;
+  let total = MODELS.length;
+  try {
+    const res = await listModels({ limit: 50 });
+    if (res.items.length > 0) {
+      rows  = res.items.map(toRegistryModel);
+      total = res.total;
+    }
+  } catch (err) {
+    console.warn("[registry] indexer fetch failed, using mock", err);
+  }
+
   return (
     <section className="section" style={{ paddingTop: "5rem" }}>
       <div className="container">
@@ -66,7 +85,7 @@ export default function RegistryPage() {
               className="mono"
               style={{ fontSize: 12, color: "var(--ink-60)" }}
             >
-              {MODELS.length} of 1,248 models shown · filters coming soon
+              {rows.length} of {total.toLocaleString()} models shown · filters coming soon
             </div>
             <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
               {["All", "LoRA", "Adapter", "Small", "Domain"].map((t) => (
@@ -123,13 +142,18 @@ export default function RegistryPage() {
                 </tr>
               </thead>
               <tbody>
-                {MODELS.map((m) => (
+                {rows.map((m) => (
                   <tr
-                    key={m.id}
+                    key={m.id + m.name}
                     style={{ borderTop: "1px solid var(--border)" }}
                   >
                     <td style={{ padding: "0.95rem 1rem" }}>
-                      <div style={{ fontWeight: 600 }}>{m.name}</div>
+                      <Link
+                        href={`/registry/${m.name}`}
+                        style={{ fontWeight: 600, color: "inherit", textDecoration: "none" }}
+                      >
+                        {m.name}
+                      </Link>
                       <div
                         className="mono"
                         style={{
@@ -167,8 +191,8 @@ export default function RegistryPage() {
                       {m.curveMultiplier}
                     </td>
                     <td style={{ padding: "0.6rem 1rem" }}>
-                      <a
-                        href="#"
+                      <Link
+                        href={`/registry/${m.name}`}
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
@@ -178,7 +202,7 @@ export default function RegistryPage() {
                         }}
                       >
                         Open MCP <ArrowUpRight size={12} />
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                 ))}
