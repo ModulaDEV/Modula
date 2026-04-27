@@ -1,0 +1,71 @@
+# fly.toml — Modula gateway
+#
+# Deployed to Fly.io across three regions for low x402 round-trip
+# latency from the US East, US Central, and EU. Each region runs at
+# least one always-on machine; auto-start brings up extras under load.
+#
+#   flyctl launch --copy-config --no-deploy   # first time
+#   flyctl deploy                             # subsequent
+#
+# All secret env vars (BASE_RPC_URL, GATEWAY_SIGNER_PRIVATE_KEY,
+# X402_FACILITATOR_API_KEY) live in `flyctl secrets`, never in this file.
+
+app = "modula-gateway"
+primary_region = "iad"
+
+[build]
+  dockerfile = "gateway/Dockerfile"
+
+[env]
+  PORT      = "8787"
+  HOST      = "0.0.0.0"
+  CHAIN     = "baseSepolia"
+  NODE_ENV  = "production"
+  LOG_LEVEL = "info"
+  X402_FACILITATOR_URL = "https://api.cdp.coinbase.com/x402"
+
+[[services]]
+  protocol             = "tcp"
+  internal_port        = 8787
+  auto_stop_machines   = "stop"
+  auto_start_machines  = true
+  min_machines_running = 1
+  processes            = ["app"]
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type       = "requests"
+    soft_limit = 100
+    hard_limit = 200
+
+  [[services.http_checks]]
+    interval        = "10s"
+    grace_period    = "5s"
+    method          = "get"
+    path            = "/healthz"
+    protocol        = "http"
+    timeout         = "2s"
+    tls_skip_verify = false
+
+[vm]
+  cpu_kind    = "shared"
+  cpus        = 1
+  memory_mb   = 256
+
+# Multi-region replication — each region runs `min_machines_running`.
+[[regions]]
+  primary = "iad"
+
+[[regions]]
+  code = "ord"
+
+[[regions]]
+  code = "fra"
