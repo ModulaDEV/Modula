@@ -32,7 +32,8 @@ contract ModulaRegistry is IModulaRegistry {
     /// @inheritdoc IModulaRegistry
     address public immutable override factory;
 
-    /// @inheritdoc IModulaRegistry
+    /// @dev Storage backing the public `records()` getter. Private so the
+    ///      auto-generated getter doesn't shadow the interface signature.
     mapping(bytes32 => Record) private _records;
 
     /// @inheritdoc IModulaRegistry

@@ -37,7 +37,9 @@ contract ModulaApp is IModulaApp, ERC721, Initializable {
     // Storage
     // ---------------------------------------------------------------------
 
-    /// @inheritdoc IERC7527App
+    /// @notice The Agency this App is bound to. Set once in `initialize`.
+    ///         Returned by the explicit `getAgency()` view below for
+    ///         IERC7527App conformance.
     address payable public agency;
 
     /// @inheritdoc IModulaApp
