@@ -1,0 +1,137 @@
+name: services
+
+# Type-check + test the off-chain services (site, gateway, indexer,
+# abi). The Solidity / Foundry side is gated by .github/workflows/
+# contracts.yml.
+#
+# Runs on every PR and on every push to main. Frozen lockfile means
+# any local install that didn't update pnpm-lock.yaml fails CI early
+# instead of producing a different dep tree on Vercel / Railway.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+# Cancel in-flight runs for the same ref when a new commit lands.
+concurrency:
+  group: services-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  abi:
+    name: abi · typecheck + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @modula/abi build
+      - run: pnpm --filter @modula/abi typecheck
+
+  sdk:
+    name: sdk · typecheck + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @modula/sdk build
+      - run: pnpm --filter @modula/sdk typecheck
+
+  gateway:
+    name: gateway · typecheck + test
+    runs-on: ubuntu-latest
+    needs: abi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @modula/abi build
+      - run: pnpm --filter @modula/gateway typecheck
+      - run: pnpm --filter @modula/gateway test
+
+  indexer:
+    name: indexer · typecheck + test
+    runs-on: ubuntu-latest
+    needs: abi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @modula/abi build
+      - run: pnpm --filter @modula/indexer typecheck
+      # Integration tests use @testcontainers/postgresql, which boots a
+      # real Postgres 16 container. GitHub-hosted runners have Docker
+      # pre-installed; no extra setup needed.
+      - run: pnpm --filter @modula/indexer test
+
+  configs:
+    name: configs · lint dashboards + alerts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Validate every JSON / YAML config file we ship — Grafana
+      # dashboards, alert rules, deploy configs. Catches typos before
+      # they break a Grafana import or a Railway / Fly deploy.
+      - name: Validate JSON
+        run: |
+          set -e
+          for f in $(find observability/grafana indexer railway.json -name '*.json' 2>/dev/null); do
+            echo "checking $f"
+            jq empty "$f"
+          done
+      - name: Validate YAML
+        run: |
+          set -e
+          python3 -c "import sys, yaml; [yaml.safe_load(open(f)) for f in sys.argv[1:]]" \
+            $(find observability/grafana .github/workflows gateway -name '*.yml' -o -name '*.yaml')
+
+  site:
+    name: site · typecheck + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm next build
+        env:
+          # No indexer in CI — site falls back to mock data on
+          # listModels() failure, so build still produces every
+          # static + dynamic route the prod deploy ships.
+          INDEXER_URL: ''
