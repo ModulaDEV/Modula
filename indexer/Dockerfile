@@ -32,7 +32,11 @@ COPY indexer        ./indexer
 RUN pnpm --filter @modula/abi build \
  && pnpm --filter @modula/indexer build \
  # Bundle indexer + its prod deps into /deploy (excludes devDependencies).
- && pnpm --filter @modula/indexer --prod deploy /deploy
+ # `--legacy` is required since pnpm v10 changed the default deploy
+ # behavior to require `inject-workspace-packages=true` or an opt-in
+ # legacy flag. Our @modula/abi workspace dep is consumed via plain
+ # workspace:* without injection, so legacy deploy is the right path.
+ && pnpm --filter @modula/indexer --prod --legacy deploy /deploy
 
 # ---------- stage 3: runtime ----------
 FROM node:22-alpine AS runtime
