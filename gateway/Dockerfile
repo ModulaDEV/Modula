@@ -30,7 +30,10 @@ COPY gateway        ./gateway
 
 RUN pnpm --filter @modula/abi build \
  && pnpm --filter @modula/gateway build \
- && pnpm --filter @modula/gateway --prod deploy /deploy
+ # `--legacy` is required since pnpm v10 changed the default deploy
+ # behavior to require `inject-workspace-packages=true`. Same fix as
+ # indexer/Dockerfile — see that file's comment for details.
+ && pnpm --filter @modula/gateway --prod --legacy deploy /deploy
 
 # ---------- stage 3: runtime ----------
 FROM node:22-alpine AS runtime

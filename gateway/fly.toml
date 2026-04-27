@@ -22,7 +22,7 @@ primary_region = "iad"
   CHAIN     = "baseSepolia"
   NODE_ENV  = "production"
   LOG_LEVEL = "info"
-  X402_FACILITATOR_URL = "https://api.cdp.coinbase.com/x402"
+  X402_FACILITATOR_URL = "https://x402.org/facilitator"
 
 [[services]]
   protocol             = "tcp"
