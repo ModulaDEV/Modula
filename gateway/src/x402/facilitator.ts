@@ -21,7 +21,12 @@ export interface FacilitatorClient {
 
 export interface CreateFacilitatorOptions {
   baseUrl: string;
-  apiKey:  string;
+  /**
+   * Optional bearer token. The public x402.org facilitator runs
+   * unauthenticated; managed facilitators (Coinbase CDP, self-hosted)
+   * can require a key. Omit for the public path.
+   */
+  apiKey?: string;
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
 }
@@ -33,13 +38,12 @@ export function createFacilitator(opts: CreateFacilitatorOptions): FacilitatorCl
   const post = async <T>(path: string, body: unknown): Promise<T> => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    const headers: Record<string, string> = { "content-type": "application/json" };
+    if (opts.apiKey) headers["authorization"] = `Bearer ${opts.apiKey}`;
     try {
       const res = await fetchImpl(opts.baseUrl + path, {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "authorization": `Bearer ${opts.apiKey}`,
-        },
+        headers,
         body: JSON.stringify(body),
         signal: ctrl.signal,
       });

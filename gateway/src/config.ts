@@ -35,8 +35,8 @@ const Schema = z.object({
 
   GATEWAY_SIGNER_PRIVATE_KEY: PrivateKey.optional(),
 
-  X402_FACILITATOR_URL:     z.string().url(),
-  X402_FACILITATOR_API_KEY: z.string().min(1),
+  X402_FACILITATOR_URL:     z.string().url().default("https://x402.org/facilitator"),
+  X402_FACILITATOR_API_KEY: z.string().min(1).optional(),
 
   // --- OAuth 2.1 (per MCP 2025-11-25 spec) ---
   OAUTH_ENABLED:   z.coerce.boolean().default(false),
