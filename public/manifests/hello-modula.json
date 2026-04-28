@@ -1,0 +1,25 @@
+{
+  "name": "hello-modula",
+  "description": "Test model hosted on the canonical Modula testnet for end-to-end smoke tests. Calls echo back the input arguments.",
+  "capabilities": ["text-generation"],
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "description": "The input prompt to echo back."
+      }
+    },
+    "required": ["prompt"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "echo": { "type": "string" }
+    }
+  },
+  "runtime": {
+    "url": "https://www.modulabase.org/api/runtime/hello-modula",
+    "timeoutMs": 30000
+  }
+}
