@@ -1,6 +1,6 @@
 # DigitalOcean App Platform spec — Modula gateway (Base Sepolia).
 #
-# Deploys @modula/gateway from sorrowzzz/modula on every push to main.
+# Deploys @modula/gateway from ModulaDEV/Modula on every push to main.
 # The Dockerfile lives at gateway/Dockerfile and expects the repo root
 # as build context (because @modula/abi is a workspace dep).
 #
@@ -18,7 +18,7 @@ region: nyc
 services:
   - name: gateway
     github:
-      repo: sorrowzzz/modula
+      repo: ModulaDEV/Modula
       branch: main
       deploy_on_push: true
 

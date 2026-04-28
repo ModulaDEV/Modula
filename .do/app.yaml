@@ -1,6 +1,6 @@
 # DigitalOcean App Platform spec — Modula indexer (Base Sepolia).
 #
-# Deploys @modula/indexer from sorrowzzz/modula on every push to main.
+# Deploys @modula/indexer from ModulaDEV/Modula on every push to main.
 # The Dockerfile lives at indexer/Dockerfile and expects the repo root
 # as build context (because @modula/abi is a workspace dep).
 #
@@ -8,7 +8,7 @@
 #   doctl apps create --spec .do/app.yaml
 #
 # Or via the dashboard: Apps -> Create App -> GitHub source ->
-# sorrowzzz/modula -> branch main -> "Edit Plan" -> import this file.
+# ModulaDEV/Modula -> branch main -> "Edit Plan" -> import this file.
 #
 # After creation, set DATABASE_URL via the dashboard (or
 # `doctl apps update <app-id> --spec .do/app.yaml` after editing
@@ -26,7 +26,7 @@ services:
   - name: indexer
     # Source: GitHub repo + branch. DO watches main and redeploys on push.
     github:
-      repo: sorrowzzz/modula
+      repo: ModulaDEV/Modula
       branch: main
       deploy_on_push: true
 
