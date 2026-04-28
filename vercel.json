@@ -7,9 +7,11 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/x", "destination": "https://x.com/modulabase", "permanent": false },
-    { "source": "/twitter", "destination": "https://x.com/modulabase", "permanent": false },
-    { "source": "/github", "destination": "https://github.com/ModulaDEV/Modula", "permanent": false }
+    { "source": "/x",        "destination": "https://x.com/modulabase",       "permanent": false },
+    { "source": "/twitter",   "destination": "https://x.com/modulabase",       "permanent": false },
+    { "source": "/github",    "destination": "https://github.com/ModulaDEV/Modula", "permanent": false },
+    { "source": "/telegram",  "destination": "https://t.me/modulabase",        "permanent": false },
+    { "source": "/tg",        "destination": "https://t.me/modulabase",        "permanent": false }
   ],
   "headers": [
     {
