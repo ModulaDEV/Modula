@@ -1,0 +1,114 @@
+# DigitalOcean App Platform spec — Modula indexer (Base Sepolia).
+#
+# Deploys @modula/indexer from sorrowzzz/modula on every push to main.
+# The Dockerfile lives at indexer/Dockerfile and expects the repo root
+# as build context (because @modula/abi is a workspace dep).
+#
+# Apply with:
+#   doctl apps create --spec .do/app.yaml
+#
+# Or via the dashboard: Apps -> Create App -> GitHub source ->
+# sorrowzzz/modula -> branch main -> "Edit Plan" -> import this file.
+#
+# After creation, set DATABASE_URL via the dashboard (or
+# `doctl apps update <app-id> --spec .do/app.yaml` after editing
+# the placeholder below). DigitalOcean masks env values marked
+# `type: SECRET` from logs and the API.
+
+name: modula-indexer-sepolia
+region: nyc
+
+# Spec version — DO defaults are sane; this just pins the schema.
+features:
+  - buildpack-stack=ubuntu-22
+
+services:
+  - name: indexer
+    # Source: GitHub repo + branch. DO watches main and redeploys on push.
+    github:
+      repo: sorrowzzz/modula
+      branch: main
+      deploy_on_push: true
+
+    # Build context = repo root (so packages/abi is reachable);
+    # Dockerfile path is relative to that root.
+    dockerfile_path: indexer/Dockerfile
+    source_dir: /
+
+    # Cheapest tier that fits a long-running event tailer comfortably.
+    # `basic-xxs` = 0.5 vCPU / 512 MB RAM, ~$5/mo. Bump to basic-xs if
+    # the cursor lag alert ever fires under sustained mainnet volume.
+    instance_size_slug: basic-xxs
+    instance_count: 1
+
+    # The indexer's Hono read API listens here; matches indexer/Dockerfile
+    # ENV PORT=8788 and indexer/src/config.ts default.
+    http_port: 8788
+
+    # /healthz returns 200 once Postgres is reachable AND the chain
+    # cursor is within REORG_DEPTH of head. DO probes every ~10s.
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 30
+      period_seconds: 15
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+    envs:
+      - key: NODE_ENV
+        value: production
+        scope: RUN_TIME
+
+      - key: PORT
+        value: "8788"
+        scope: RUN_TIME
+
+      - key: HOST
+        value: 0.0.0.0
+        scope: RUN_TIME
+
+      # Chain: testnet for now; flip to "base" + production RPC for mainnet.
+      - key: CHAIN
+        value: baseSepolia
+        scope: RUN_TIME
+
+      - key: BASE_RPC_URL
+        value: https://sepolia.base.org
+        scope: RUN_TIME
+
+      # Begin tailing from the canonical Sepolia deploy block (all five
+      # contracts deployed atomically in this block — see broadcast log).
+      - key: START_BLOCK
+        value: "40775938"
+        scope: RUN_TIME
+
+      # Poll cadence + reorg buffer. Base produces a block every ~2s,
+      # so 2s polling averages roughly one block per cycle. CONFIRMATIONS
+      # stays at 0 for testnet; raise to 12 for mainnet.
+      - key: POLL_INTERVAL_MS
+        value: "2000"
+        scope: RUN_TIME
+
+      - key: CONFIRMATIONS
+        value: "0"
+        scope: RUN_TIME
+
+      - key: DATABASE_POOL_MAX
+        value: "10"
+        scope: RUN_TIME
+
+      - key: LOG_LEVEL
+        value: info
+        scope: RUN_TIME
+
+      # Set via the DO dashboard (Settings -> App-Level Environment
+      # Variables -> Edit -> add as encrypted). Leave the value empty
+      # in this file so the spec can be committed.
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+
+# Public ingress: DO assigns a *.ondigitalocean.app subdomain by
+# default. Add a custom domain (e.g. indexer-sepolia.modulabase.org)
+# via the dashboard after the first deploy succeeds.

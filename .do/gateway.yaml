@@ -1,0 +1,88 @@
+# DigitalOcean App Platform spec — Modula gateway (Base Sepolia).
+#
+# Deploys @modula/gateway from sorrowzzz/modula on every push to main.
+# The Dockerfile lives at gateway/Dockerfile and expects the repo root
+# as build context (because @modula/abi is a workspace dep).
+#
+# Apply with:
+#   doctl apps create --spec .do/gateway.yaml
+#
+# Mirrors the indexer's deploy pattern (see .do/app.yaml). For mainnet
+# we move this off DO and onto Fly.io for multi-region edge routing,
+# since the gateway is in the hot path for every paid call. Single
+# region is correct for testnet.
+
+name: modula-gateway-sepolia
+region: nyc
+
+services:
+  - name: gateway
+    github:
+      repo: sorrowzzz/modula
+      branch: main
+      deploy_on_push: true
+
+    dockerfile_path: gateway/Dockerfile
+    source_dir: /
+
+    # Same tier as the indexer — 0.5 vCPU / 512MB. The gateway is more
+    # latency-sensitive than the indexer but Sepolia volume is tiny.
+    instance_size_slug: basic-xxs
+    instance_count: 1
+
+    # gateway/Dockerfile sets ENV PORT=8787; gateway/src/server.ts
+    # binds the same.
+    http_port: 8787
+
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 30
+      period_seconds: 15
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+    envs:
+      - key: NODE_ENV
+        value: production
+        scope: RUN_TIME
+
+      - key: PORT
+        value: "8787"
+        scope: RUN_TIME
+
+      - key: HOST
+        value: 0.0.0.0
+        scope: RUN_TIME
+
+      - key: CHAIN
+        value: baseSepolia
+        scope: RUN_TIME
+
+      - key: BASE_RPC_URL
+        value: https://sepolia.base.org
+        scope: RUN_TIME
+
+      # Public x402.org facilitator — no API key required. The gateway's
+      # facilitator client treats the API key as optional; omitting it
+      # sends unauthenticated requests, which is what x402.org expects.
+      - key: X402_FACILITATOR_URL
+        value: https://x402.org/facilitator
+        scope: RUN_TIME
+
+      # OAuth disabled for testnet bring-up. Flip OAUTH_ENABLED=true
+      # and set the Clerk/Auth0 issuer + audience for production.
+      - key: OAUTH_ENABLED
+        value: "false"
+        scope: RUN_TIME
+
+      - key: LOG_LEVEL
+        value: info
+        scope: RUN_TIME
+
+      # Secret — set via the DO dashboard or doctl after creation.
+      # Signs ModelCalled events on ModulaAccessRouter; rotation
+      # requires a SetGatewaySigner.s.sol broadcast.
+      - key: GATEWAY_SIGNER_PRIVATE_KEY
+        scope: RUN_TIME
+        type: SECRET
