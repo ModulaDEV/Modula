@@ -21,19 +21,21 @@ import { encodeRequirements, encodeSettlement, decodePayment } from "./codec.js"
 import { quoteWrap, readAsset } from "../chain/agency.js";
 import { readModelByAgency }    from "../chain/registry.js";
 import { PaymentRequired }      from "../errors.js";
+import { holderDiscountBps, applyDiscount } from "../chain/discount.js";
 
 import type { PaymentRequirements, X402Network } from "./types.js";
 import type { Clients }   from "../chain/clients.js";
 import type { TtlCache }  from "../chain/cache.js";
 
 interface Deps {
-  clients:        Clients;
-  facilitator:    FacilitatorClient;
-  registry:       Address;
-  recordCache:    TtlCache<string, ModelRecord>;
-  quoteCache:     TtlCache<string, Quote>;
-  network:        X402Network;
-  log:            Logger;
+  clients:            Clients;
+  facilitator:        FacilitatorClient;
+  registry:           Address;
+  recordCache:        TtlCache<string, ModelRecord>;
+  quoteCache:         TtlCache<string, Quote>;
+  network:            X402Network;
+  log:                Logger;
+  modulaTokenAddress: Address | undefined;
 }
 
 export function x402Middleware(deps: Deps): MiddlewareHandler {
@@ -55,10 +57,20 @@ export function x402Middleware(deps: Deps): MiddlewareHandler {
     const asset = await readAsset({ clients: deps.clients, cache: deps.quoteCache as never }, agency);
     const quote = await quoteWrap({ clients: deps.clients, cache: deps.quoteCache }, agency);
 
+    // Resolve discount: use X-Wallet-Address hint at challenge time,
+    // or the verified payer on the retry with PAYMENT-SIGNATURE.
+    const walletHint = c.req.header("X-Wallet-Address") as Address | undefined;
+    const discountBps = await holderDiscountBps(
+      deps.clients.read,
+      deps.modulaTokenAddress,
+      walletHint ?? ("0x0000000000000000000000000000000000000000" as Address),
+    );
+    const discountedAmount = applyDiscount(quote.total, discountBps);
+
     const requirements: PaymentRequirements = {
       scheme:            "exact",
       network:           deps.network,
-      maxAmountRequired: quote.total.toString(),
+      maxAmountRequired: discountedAmount.toString(),
       asset:             asset.currency,
       payTo:             record.treasury,
       resource:          c.req.url,
@@ -77,9 +89,23 @@ export function x402Middleware(deps: Deps): MiddlewareHandler {
     }
 
     const payload  = decodePayment(sig);
-    const verified = await deps.facilitator.verify(payload, requirements);
+
+    // Re-derive discount using the actual payer from the signed authorization
+    // (more trustworthy than the hint header).
+    const payer = payload.payload.authorization.from as Address;
+    const payerDiscountBps = await holderDiscountBps(
+      deps.clients.read,
+      deps.modulaTokenAddress,
+      payer,
+    );
+    const payerAmount = applyDiscount(quote.total, payerDiscountBps);
+    const payerRequirements = payerDiscountBps !== discountBps
+      ? { ...requirements, maxAmountRequired: payerAmount.toString() }
+      : requirements;
+
+    const verified = await deps.facilitator.verify(payload, payerRequirements);
     if (!verified.isValid) {
-      c.header("PAYMENT-REQUIRED", encodeRequirements(requirements));
+      c.header("PAYMENT-REQUIRED", encodeRequirements(payerRequirements));
       return c.json(
         {
           error: {
@@ -94,9 +120,9 @@ export function x402Middleware(deps: Deps): MiddlewareHandler {
     // Stash for the handler — it picks up agent + paid + record + quote.
     c.set("rpc:body", body);
     c.set("x402:agent",   verified.payer ?? payload.payload.authorization.from);
-    c.set("x402:paid",    quote.total);
+    c.set("x402:paid",    payerAmount);
     c.set("x402:record",  record);
-    c.set("x402:reqs",    requirements);
+    c.set("x402:reqs",    payerRequirements);
     c.set("x402:payload", payload);
 
     const t0 = performance.now();
@@ -107,7 +133,7 @@ export function x402Middleware(deps: Deps): MiddlewareHandler {
     // was *served* (or attempted). Settling gives the user back a tx
     // hash they can verify on-chain.
     try {
-      const settle = await deps.facilitator.settle(payload, requirements);
+      const settle = await deps.facilitator.settle(payload, payerRequirements);
       if (!settle.success) {
         deps.log.error({ reason: settle.errorReason }, "x402_settle_failed");
         throw new PaymentRequired(
