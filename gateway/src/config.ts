@@ -39,7 +39,13 @@ const Schema = z.object({
   X402_FACILITATOR_API_KEY: z.string().min(1).optional(),
 
   // --- OAuth 2.1 (per MCP 2025-11-25 spec) ---
-  OAUTH_ENABLED:   z.coerce.boolean().default(false),
+  // Don't use z.coerce.boolean() — it calls Boolean() which returns
+  // true for any non-empty string, including the literal "false". The
+  // env-var-as-bool idiom needs an explicit string match.
+  OAUTH_ENABLED: z
+    .union([z.boolean(), z.string()])
+    .default(false)
+    .transform((v) => v === true || v === "true" || v === "1"),
   OAUTH_ISSUER:    z.string().url().optional(),
   OAUTH_AUDIENCE:  z.string().min(1).optional(),
   OAUTH_JWKS_URI:  z.string().url().optional(),
