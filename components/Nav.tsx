@@ -68,8 +68,17 @@ export function Nav() {
         pointerEvents: "none",
       }}
     >
-      {/* Centered floating pill */}
-      <div className="nav-pill" style={{ pointerEvents: "auto" }}>
+      {/* Centered floating pill — drops in from above on first paint
+          and fades the children in with a small stagger so the brand
+          mark, links, and CTA arrive in sequence rather than all at
+          once (looks more deliberate than a single fade). */}
+      <motion.div
+        className="nav-pill"
+        initial={{ opacity: 0, y: -16, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0,   scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.2, 0.7, 0.2, 1], delay: 0.1 }}
+        style={{ pointerEvents: "auto" }}
+      >
         <Link
           href="/"
           onClick={() => setOpen(false)}
@@ -112,7 +121,7 @@ export function Nav() {
             <span />
           </span>
         </button>
-      </div>
+      </motion.div>
 
       {/* Mobile backdrop */}
       <AnimatePresence>
