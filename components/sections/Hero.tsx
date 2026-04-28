@@ -40,7 +40,7 @@ export function Hero() {
           </div>
 
           <p className="hero-meta">
-            v0.11.0 &nbsp;·&nbsp; Base Sepolia live &nbsp;·&nbsp; mainnet soon
+            v0.11.0 &nbsp;·&nbsp; Devnet / Testnet &nbsp;·&nbsp; mainnet soon
           </p>
         </motion.div>
       </div>
