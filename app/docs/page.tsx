@@ -2,30 +2,44 @@ import Link from "next/link";
 import { Book, Terminal, Plug, Coins, ArrowUpRight } from "lucide-react";
 import { siteConfig } from "@/site.config";
 
-const SECTIONS = [
+/**
+ * Each card resolves to a real, existing destination — either a section
+ * anchor on the home page, the whitepaper, or a file in the public OS
+ * repo. There are no /docs/<slug> sub-pages yet, so any link that would
+ * have pointed at one routes to the canonical artifact for that topic
+ * instead of to a 404.
+ */
+const SECTIONS: Array<{
+  Icon: typeof Book;
+  title: string;
+  body: string;
+  href: string;
+  external?: boolean;
+}> = [
   {
     Icon: Book,
     title: "Protocol overview",
     body: "How Modula turns a fine-tuned model into a priced, callable, on-chain object.",
-    slug: "/docs/overview",
+    href: "/#protocol",
   },
   {
     Icon: Terminal,
     title: "Quickstart",
     body: "Register your first model in under five minutes. From fine-tune to MCP endpoint.",
-    slug: "/docs/quickstart",
+    href: `${siteConfig.githubUrl}/blob/main/README.md`,
+    external: true,
   },
   {
     Icon: Plug,
     title: "MCP integration",
     body: "Expose any Modula model to Claude, Cursor, or a custom agent as a drop-in tool.",
-    slug: "/docs/mcp",
+    href: "/#agents",
   },
   {
     Icon: Coins,
     title: "Economics",
     body: "ERC-7527 bonding curves, creator treasuries, and x402 payment settlement.",
-    slug: "/docs/economics",
+    href: "/#economics",
   },
 ];
 
@@ -75,10 +89,16 @@ export default function DocsIndex() {
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           }}
         >
-          {SECTIONS.map(({ Icon, title, body, slug }) => (
-            <Link
-              key={slug}
-              href={slug}
+          {SECTIONS.map(({ Icon, title, body, href, external }) => {
+            const Element = external ? "a" : Link;
+            const anchorProps = external
+              ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
+              : {};
+            return (
+            <Element
+              key={title}
+              href={href}
+              {...anchorProps}
               className="card"
               style={{
                 display: "flex",
@@ -130,8 +150,9 @@ export default function DocsIndex() {
               >
                 {body}
               </p>
-            </Link>
-          ))}
+            </Element>
+            );
+          })}
         </div>
 
         <div
