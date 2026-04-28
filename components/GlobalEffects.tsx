@@ -1,17 +1,14 @@
-import { FxCircuitParallax } from "./FxCircuitParallax";
-
+/**
+ * GlobalEffects — intentionally empty.
+ *
+ * The previous design layered eight decorative FX surfaces over every
+ * page (circuit grid, mesh gradient, scanline sweep, three orbs, etc).
+ * The Jamie-style overhaul replaces that with a clean white canvas;
+ * accent comes from the headline + product shot, not from ambient FX.
+ *
+ * Kept as a no-op so layout.tsx doesn't need to be touched if we ever
+ * want to reintroduce a single, restrained ambient layer later.
+ */
 export function GlobalEffects() {
-  return (
-    <div className="fx-root" aria-hidden="true">
-      <div className="fx-mesh" />
-      <div className="fx-grid" />
-      <FxCircuitParallax />
-      <div className="fx-scanline" />
-      <div className="fx-gradient" />
-      <div className="fx-orb fx-orb-1" />
-      <div className="fx-orb fx-orb-2" />
-      <div className="fx-orb fx-orb-3" />
-      <div className="fx-vignette" />
-    </div>
-  );
+  return null;
 }
