@@ -81,6 +81,19 @@ html {
   scroll-behavior: smooth;
   background: var(--bg);
   color-scheme: light;
+  /* When an in-page anchor is the navigation target, the floating
+     pill nav covers the top ~68px of the viewport. scroll-padding-top
+     pushes the snapped position down so the section header sits clear
+     of the pill instead of behind it. */
+  scroll-padding-top: calc(var(--nav-h) + 24px);
+}
+
+:target,
+[id] {
+  /* Belt-and-braces: section anchors get the same offset applied as
+     scroll-margin so users coming from a page-load with #fragment land
+     in the right place even if scroll-behavior=smooth is overridden. */
+  scroll-margin-top: calc(var(--nav-h) + 24px);
 }
 
 body {
