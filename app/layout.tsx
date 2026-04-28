@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { GlobalEffects } from "@/components/GlobalEffects";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { JsonLd } from "@/components/JsonLd";
+import { ToastProvider } from "@/components/Toast";
 import { siteConfig } from "@/site.config";
 import "./globals.css";
 
@@ -92,11 +93,13 @@ export default function RootLayout({
         <JsonLd />
         <GlobalEffects />
         <ScrollProgress />
-        <div className="page-shell">
-          <Nav />
-          <main style={{ paddingTop: "var(--nav-h)" }}>{children}</main>
-          <Footer />
-        </div>
+        <ToastProvider>
+          <div className="page-shell">
+            <Nav />
+            <main style={{ paddingTop: "var(--nav-h)" }}>{children}</main>
+            <Footer />
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );
