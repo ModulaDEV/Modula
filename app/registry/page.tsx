@@ -227,7 +227,12 @@ export default async function RegistryPage() {
           <p style={{ color: "var(--ink-60)", fontSize: 14, margin: "0 0 1rem" }}>
             Registration is permissionless — no approval, no application.
           </p>
-          <Link href={siteConfig.docsPath + "/quickstart"} className="btn btn-primary btn-sm">
+          <Link
+            href={`${siteConfig.githubUrl}/blob/main/README.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary btn-sm"
+          >
             Start the quickstart
             <ArrowUpRight size={14} />
           </Link>
