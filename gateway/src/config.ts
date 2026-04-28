@@ -38,6 +38,9 @@ const Schema = z.object({
   X402_FACILITATOR_URL:     z.string().url().default("https://x402.org/facilitator"),
   X402_FACILITATOR_API_KEY: z.string().min(1).optional(),
 
+  // $MODULA token — set after TGE. Holder discount is disabled when unset.
+  MODULA_TOKEN_ADDRESS: HexAddress.optional(),
+
   // --- OAuth 2.1 (per MCP 2025-11-25 spec) ---
   // Don't use z.coerce.boolean() — it calls Boolean() which returns
   // true for any non-empty string, including the literal "false". The
