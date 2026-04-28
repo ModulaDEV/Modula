@@ -66,6 +66,7 @@ export function createApp(deps: AppDeps): Hono {
       "content-type",
       "authorization",
       "PAYMENT-SIGNATURE",
+      "X-Wallet-Address",
       "x-modula-agent",
     ],
     exposeHeaders: ["PAYMENT-RESPONSE", "WWW-Authenticate"],
@@ -92,6 +93,7 @@ export function createApp(deps: AppDeps): Hono {
     quoteCache,
     manifestCache,
     network,
+    modulaTokenAddress: deps.config.MODULA_TOKEN_ADDRESS as `0x${string}` | undefined,
   }));
 
   // 404 fallback
