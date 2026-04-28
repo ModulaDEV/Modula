@@ -184,9 +184,14 @@ export default async function ModelDetailPage({ params }: PageProps) {
         </Card>
 
         <div style={{ marginTop: "2rem", fontSize: 13, color: "var(--ink-60)" }}>
-          <Link href="/docs/quickstart" style={{ color: "var(--base-blue-600)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+          <a
+            href={`${siteConfig.githubUrl}/blob/main/README.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--base-blue-600)", display: "inline-flex", alignItems: "center", gap: 4 }}
+          >
             Call this model from your agent <ArrowUpRight size={13} />
-          </Link>
+          </a>
         </div>
       </div>
     </section>
