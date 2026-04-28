@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowUpRight,
-  Book,
   Boxes,
   Coins,
   Bot,
   FileText,
   HelpCircle,
   Layers,
+  Book,
+  ArrowUpRight,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { siteConfig } from "@/site.config";
@@ -20,21 +20,13 @@ const NAV_LINKS = [
   { href: "/#protocol", label: "Protocol", Icon: Layers },
   { href: "/registry", label: "Registry", Icon: Boxes },
   { href: "/#economics", label: "Economics", Icon: Coins },
-  { href: "/#agents", label: "For Agents", Icon: Bot },
+  { href: "/#agents", label: "Agents", Icon: Bot },
   { href: "/whitepaper", label: "Whitepaper", Icon: FileText },
   { href: "/#faq", label: "FAQ", Icon: HelpCircle },
 ] as const;
 
 export function Nav() {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   // Close on escape
   useEffect(() => {
@@ -62,87 +54,49 @@ export function Nav() {
   return (
     <header
       className="nav-outer"
-      data-scrolled={scrolled ? "true" : "false"}
       data-open={open ? "true" : "false"}
       style={{
         position: "fixed",
-        inset: "0 0 auto 0",
-        height: "var(--nav-h)",
+        top: 0,
+        left: 0,
+        right: 0,
         zIndex: 50,
-        backdropFilter: "blur(18px) saturate(140%)",
-        WebkitBackdropFilter: "blur(18px) saturate(140%)",
-        background:
-          scrolled || open
-            ? "rgba(250, 251, 255, 0.82)"
-            : "rgba(250, 251, 255, 0.55)",
-        borderBottom: `1px solid ${
-          scrolled || open ? "var(--border-strong)" : "var(--border)"
-        }`,
-        boxShadow:
-          scrolled || open
-            ? "0 6px 24px -14px rgba(11, 16, 32, 0.12)"
-            : "none",
-        transition:
-          "background 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease",
+        height: "var(--nav-h)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        pointerEvents: "none",
       }}
     >
-      <div
-        className="container"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: "100%",
-        }}
-      >
+      {/* Centered floating pill */}
+      <div className="nav-pill" style={{ pointerEvents: "auto" }}>
         <Link
           href="/"
           onClick={() => setOpen(false)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-          }}
+          className="nav-brand"
+          aria-label="Modula home"
         >
-          <Logo size={30} />
-          <span style={{ fontSize: 16 }}>Modula</span>
-          <span
-            className="chip"
-            style={{ marginLeft: 6 }}
-            aria-label="Built on Base"
-          >
-            BASE
-          </span>
+          <Logo size={22} />
+          <span className="nav-brand-name">Modula</span>
         </Link>
 
-        <nav aria-label="Primary" className="nav-desktop-links">
+        <span className="nav-sep" aria-hidden="true" />
+
+        <nav aria-label="Primary" className="nav-pill-links">
           {NAV_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="nav-link"
-              style={{
-                fontSize: 13.5,
-                color: "var(--ink-60)",
-                fontWeight: 500,
-                letterSpacing: "-0.005em",
-                position: "relative",
-                padding: "0.25rem 0",
-              }}
-            >
+            <a key={l.href} href={l.href} className="nav-pill-link">
               {l.label}
             </a>
           ))}
         </nav>
 
-        <div className="nav-desktop-ctas">
-          <Link href={siteConfig.docsPath} className="btn btn-sm btn-primary">
-            Read the docs
-            <ArrowUpRight size={14} />
-          </Link>
-        </div>
+        <Link
+          href={siteConfig.registryPath}
+          className="nav-pill-cta"
+          onClick={() => setOpen(false)}
+        >
+          Launch app
+        </Link>
 
         <button
           type="button"
@@ -160,7 +114,7 @@ export function Nav() {
         </button>
       </div>
 
-      {/* Full-screen backdrop (dims page content behind menu) */}
+      {/* Mobile backdrop */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -173,15 +127,13 @@ export function Nav() {
             aria-hidden="true"
             style={{
               position: "fixed",
-              top: "var(--nav-h)",
-              left: 0,
-              right: 0,
-              bottom: 0,
+              inset: 0,
               background:
-                "radial-gradient(ellipse at top, rgba(11,16,32,0.18), rgba(11,16,32,0.45))",
+                "radial-gradient(ellipse at top, rgba(11,16,32,0.10), rgba(11,16,32,0.32))",
               backdropFilter: "blur(4px)",
               WebkitBackdropFilter: "blur(4px)",
-              zIndex: 1,
+              zIndex: -1,
+              pointerEvents: "auto",
             }}
           />
         )}
@@ -202,48 +154,23 @@ export function Nav() {
             transition={{ duration: 0.24, ease: [0.2, 0.7, 0.2, 1] }}
             style={{
               position: "absolute",
-              top: "var(--nav-h)",
-              left: 0,
-              right: 0,
-              zIndex: 2,
-              padding: "0.85rem 16px 1.25rem",
-              background: "rgba(250, 251, 255, 0.96)",
+              top: "calc(var(--nav-h) - 4px)",
+              left: 12,
+              right: 12,
+              maxWidth: 480,
+              marginInline: "auto",
+              padding: "0.85rem 1rem 1rem",
+              background: "rgba(255, 255, 255, 0.96)",
               backdropFilter: "blur(18px) saturate(140%)",
               WebkitBackdropFilter: "blur(18px) saturate(140%)",
-              borderBottom: "1px solid var(--border-strong)",
+              border: "1px solid rgba(11, 16, 32, 0.08)",
+              borderRadius: 18,
               boxShadow: "0 24px 48px -24px rgba(11, 16, 32, 0.25)",
-              maxHeight: "calc(100vh - var(--nav-h))",
+              maxHeight: "calc(100vh - var(--nav-h) - 24px)",
               overflowY: "auto",
+              pointerEvents: "auto",
             }}
           >
-            {/* Decorative gradient accent */}
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 1,
-                background:
-                  "linear-gradient(90deg, transparent, var(--brand), transparent)",
-                opacity: 0.5,
-              }}
-            />
-
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--ink-40)",
-                fontWeight: 600,
-                padding: "0.35rem 0.5rem 0.6rem",
-              }}
-            >
-              Navigate
-            </div>
-
             <ul
               style={{
                 listStyle: "none",
@@ -301,11 +228,19 @@ export function Nav() {
             >
               <Link
                 href={siteConfig.docsPath}
-                className="btn btn-sm btn-primary"
+                className="btn btn-sm"
                 style={{ flex: 1, justifyContent: "center" }}
                 onClick={() => setOpen(false)}
               >
                 <Book size={14} /> Docs
+              </Link>
+              <Link
+                href={siteConfig.registryPath}
+                className="btn btn-sm btn-primary"
+                style={{ flex: 1, justifyContent: "center" }}
+                onClick={() => setOpen(false)}
+              >
+                Launch app
               </Link>
             </motion.div>
           </motion.div>
@@ -313,70 +248,106 @@ export function Nav() {
       </AnimatePresence>
 
       <style>{`
-        .nav-link::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: -2px;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, var(--brand), transparent);
-          transform: scaleX(0);
-          transform-origin: center;
-          transition: transform 0.25s ease;
+        .nav-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 6px 6px 6px 14px;
+          background: rgba(255, 255, 255, 0.78);
+          backdrop-filter: blur(20px) saturate(140%);
+          -webkit-backdrop-filter: blur(20px) saturate(140%);
+          border: 1px solid rgba(11, 16, 32, 0.08);
+          border-radius: 999px;
+          box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.8) inset,
+            0 6px 24px -14px rgba(11, 16, 32, 0.18);
+          transition: box-shadow 0.2s ease, background 0.2s ease;
         }
-        .nav-link:hover::after {
-          transform: scaleX(1);
+        .nav-pill:hover {
+          box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.8) inset,
+            0 8px 28px -14px rgba(11, 16, 32, 0.24);
+        }
+        .nav-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: var(--ink);
+          font-weight: 600;
+          letter-spacing: -0.01em;
+        }
+        .nav-brand:hover { color: var(--ink); }
+        .nav-brand-name { font-size: 14.5px; }
+
+        .nav-sep {
+          width: 1px;
+          height: 18px;
+          background: rgba(11, 16, 32, 0.1);
+          margin-inline: 4px;
         }
 
-        /* Desktop/mobile visibility */
-        .nav-desktop-links,
-        .nav-desktop-ctas {
+        .nav-pill-links { display: none; align-items: center; gap: 0.35rem; }
+        .nav-pill-link {
+          padding: 6px 12px;
+          border-radius: 999px;
+          color: rgba(11, 16, 32, 0.62);
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: -0.005em;
+          transition: background 0.18s ease, color 0.18s ease;
+        }
+        .nav-pill-link:hover {
+          background: rgba(11, 16, 32, 0.05);
+          color: var(--ink);
+        }
+
+        .nav-pill-cta {
           display: none;
+          align-items: center;
+          padding: 8px 16px;
+          border-radius: 999px;
+          background: #0b1020;
+          color: #fff;
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: -0.005em;
+          margin-left: 6px;
+          transition: background 0.18s ease, transform 0.15s ease;
         }
-        @media (min-width: 900px) {
-          .nav-desktop-links {
-            display: flex;
-            align-items: center;
-            gap: 1.75rem;
-          }
-          .nav-desktop-ctas {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-          .nav-burger {
-            display: none !important;
-          }
+        .nav-pill-cta:hover {
+          background: #000;
+          color: #fff;
+          transform: translateY(-1px);
         }
 
-        /* Animated hamburger */
+        @media (min-width: 900px) {
+          .nav-pill-links { display: inline-flex; }
+          .nav-pill-cta { display: inline-flex; }
+          .nav-burger { display: none !important; }
+        }
+
+        /* Hamburger */
         .nav-burger {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           padding: 0;
-          border: 1px solid var(--border-strong);
-          background: var(--bg-elev);
-          border-radius: 10px;
+          border: none;
+          background: rgba(11, 16, 32, 0.05);
+          border-radius: 999px;
           cursor: pointer;
-          transition: background 0.2s ease, border-color 0.2s ease,
-            transform 0.15s ease;
+          margin-left: 4px;
+          transition: background 0.18s ease, transform 0.15s ease;
         }
-        .nav-burger:hover {
-          border-color: var(--brand-border-strong);
-          background: var(--brand-softer);
-        }
-        .nav-burger:active {
-          transform: scale(0.96);
-        }
+        .nav-burger:hover { background: rgba(11, 16, 32, 0.08); }
+        .nav-burger:active { transform: scale(0.96); }
         .nav-burger-bars {
           position: relative;
           display: inline-block;
-          width: 18px;
-          height: 14px;
+          width: 16px;
+          height: 12px;
         }
         .nav-burger-bars > span {
           position: absolute;
@@ -385,26 +356,25 @@ export function Nav() {
           height: 1.75px;
           background: var(--ink);
           border-radius: 2px;
-          transition: transform 0.28s cubic-bezier(0.65, 0, 0.35, 1),
-            opacity 0.18s ease, top 0.28s cubic-bezier(0.65, 0, 0.35, 1);
+          transition:
+            transform 0.28s cubic-bezier(0.65, 0, 0.35, 1),
+            opacity 0.18s ease,
+            top 0.28s cubic-bezier(0.65, 0, 0.35, 1);
         }
         .nav-burger-bars > span:nth-child(1) { top: 1px; }
-        .nav-burger-bars > span:nth-child(2) { top: 6px; }
-        .nav-burger-bars > span:nth-child(3) { top: 11px; }
+        .nav-burger-bars > span:nth-child(2) { top: 5px; }
+        .nav-burger-bars > span:nth-child(3) { top: 9px; }
         .nav-burger-bars[data-open="true"] > span:nth-child(1) {
-          top: 6px;
-          transform: rotate(45deg);
+          top: 5px; transform: rotate(45deg);
         }
         .nav-burger-bars[data-open="true"] > span:nth-child(2) {
-          opacity: 0;
-          transform: scaleX(0.2);
+          opacity: 0; transform: scaleX(0.2);
         }
         .nav-burger-bars[data-open="true"] > span:nth-child(3) {
-          top: 6px;
-          transform: rotate(-45deg);
+          top: 5px; transform: rotate(-45deg);
         }
 
-        /* Mobile nav row */
+        /* Mobile drawer rows */
         .mobile-nav-link {
           position: relative;
           display: flex;
@@ -449,9 +419,7 @@ export function Nav() {
           color: var(--brand);
           flex-shrink: 0;
         }
-        .mobile-nav-label {
-          flex: 1;
-        }
+        .mobile-nav-label { flex: 1; }
         .mobile-nav-arrow {
           color: var(--ink-40);
           transition: color 0.18s ease, transform 0.18s ease;
@@ -460,7 +428,6 @@ export function Nav() {
           color: var(--brand);
           transform: translate(2px, -2px);
         }
-
       `}</style>
     </header>
   );
