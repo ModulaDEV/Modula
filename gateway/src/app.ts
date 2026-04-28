@@ -73,7 +73,12 @@ export function createApp(deps: AppDeps): Hono {
   }));
 
   // Per-model manifest read
-  app.route("/m/:agency/manifest.json", manifest(deps));
+  app.route("/m/:agency/manifest.json", manifest({
+    ...deps,
+    clients,
+    recordCache,
+    manifestCache,
+  }));
 
   // MCP + x402 + OAuth. Bearer mounted before the route so it runs
   // ahead of the JSON-RPC dispatcher; the dispatcher itself opens
