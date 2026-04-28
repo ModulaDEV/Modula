@@ -30,12 +30,13 @@ import type { X402Network } from "../x402/types.js";
 import { fetchManifest, callRuntime, type ModelManifest } from "../runtime.js";
 
 interface McpDeps extends AppDeps {
-  clients:       Clients;
-  facilitator:   FacilitatorClient;
-  recordCache:   TtlCache<string, ModelRecord>;
-  quoteCache:    TtlCache<string, Quote>;
-  manifestCache: TtlCache<string, ModelManifest>;
-  network:       X402Network;
+  clients:            Clients;
+  facilitator:        FacilitatorClient;
+  recordCache:        TtlCache<string, ModelRecord>;
+  quoteCache:         TtlCache<string, Quote>;
+  manifestCache:      TtlCache<string, ModelManifest>;
+  network:            X402Network;
+  modulaTokenAddress: `0x${string}` | undefined;
 }
 
 const PROTOCOL_VERSION = "2025-11-25";
@@ -46,13 +47,14 @@ export function mcp(deps: McpDeps): Hono {
   app.post(
     "/",
     x402Middleware({
-      clients:     deps.clients,
-      facilitator: deps.facilitator,
-      registry:    deps.config.addresses.registry,
-      recordCache: deps.recordCache,
-      quoteCache:  deps.quoteCache,
-      network:     deps.network,
-      log:         deps.log,
+      clients:            deps.clients,
+      facilitator:        deps.facilitator,
+      registry:           deps.config.addresses.registry,
+      recordCache:        deps.recordCache,
+      quoteCache:         deps.quoteCache,
+      network:            deps.network,
+      log:                deps.log,
+      modulaTokenAddress: deps.modulaTokenAddress,
     }),
     async (c) => {
       const body = c.get("rpc:body" as never) as { jsonrpc?: string; id?: number | string; method?: string; params?: unknown };
