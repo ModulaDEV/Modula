@@ -1,15 +1,25 @@
 import Link from "next/link";
-import { Github, Twitter, Book, ArrowUpRight } from "lucide-react";
+import { Github, Twitter, Send, ArrowUpRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { siteConfig } from "@/site.config";
 
+/**
+ * Every link below points at a real, reachable destination. Earlier
+ * iterations had stub paths (/docs/quickstart, /docs/mcp,
+ * /registry?filter=lora) that 404'd or did nothing. Each entry now
+ * resolves to either an existing page, a section anchor, or an
+ * external repo / explorer URL.
+ *
+ * When a sub-doc (e.g. a real Quickstart page) eventually lands, swap
+ * the corresponding href below — the column shape stays the same.
+ */
 const COLS = [
   {
     title: "Protocol",
     links: [
-      { href: "#protocol", label: "How it works" },
-      { href: "#economics", label: "Token economics" },
-      { href: "#agents", label: "MCP interface" },
+      { href: "/#protocol",   label: "How it works" },
+      { href: "/#economics",  label: "Token economics" },
+      { href: "/#agents",     label: "MCP interface" },
       { href: siteConfig.whitepaperPath, label: "Whitepaper" },
     ],
   },
@@ -17,24 +27,33 @@ const COLS = [
     title: "Registry",
     links: [
       { href: siteConfig.registryPath, label: "Browse models" },
-      { href: siteConfig.registryPath + "?filter=lora", label: "LoRAs" },
-      { href: siteConfig.registryPath + "?filter=adapter", label: "Adapters" },
-      { href: "#registry", label: "List your model" },
+      { href: "/#features",   label: "Protocol features" },
+      { href: "/#registry",   label: "List your model" },
+      { href: "/#stats",      label: "Live metrics" },
     ],
   },
   {
     title: "Developers",
     links: [
       { href: siteConfig.docsPath, label: "Documentation" },
-      { href: siteConfig.docsPath + "/quickstart", label: "Quickstart" },
-      { href: siteConfig.docsPath + "/mcp", label: "MCP integration" },
       { href: siteConfig.githubUrl, label: "GitHub", external: true },
+      {
+        href: `${siteConfig.githubUrl}/blob/main/README.md`,
+        label: "README",
+        external: true,
+      },
+      {
+        href: `${siteConfig.githubUrl}/releases`,
+        label: "Releases",
+        external: true,
+      },
     ],
   },
   {
     title: "Network",
     links: [
-      { href: siteConfig.twitter, label: "X / Twitter", external: true },
+      { href: siteConfig.twitter,  label: "X / Twitter", external: true },
+      { href: siteConfig.telegram, label: "Telegram",    external: true },
       { href: siteConfig.baseExplorerUrl, label: "Basescan", external: true },
     ],
   },
@@ -96,13 +115,15 @@ export function Footer() {
               >
                 <Twitter size={16} />
               </a>
-              <Link
-                href={siteConfig.docsPath}
+              <a
+                href={siteConfig.telegram}
                 className="btn btn-sm btn-ghost"
-                aria-label="Documentation"
+                aria-label="Telegram"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <Book size={16} />
-              </Link>
+                <Send size={16} />
+              </a>
             </div>
           </div>
           {COLS.map((col) => (
@@ -131,6 +152,7 @@ export function Footer() {
               >
                 {col.links.map((l) => {
                   const isExt = "external" in l && l.external;
+                  const Element = isExt ? "a" : Link;
                   const linkProps = isExt
                     ? {
                         target: "_blank" as const,
@@ -139,7 +161,7 @@ export function Footer() {
                     : {};
                   return (
                     <li key={l.label}>
-                      <a
+                      <Element
                         href={l.href}
                         {...linkProps}
                         style={{
@@ -154,7 +176,7 @@ export function Footer() {
                         {isExt && (
                           <ArrowUpRight size={12} aria-hidden="true" />
                         )}
-                      </a>
+                      </Element>
                     </li>
                   );
                 })}
