@@ -69,6 +69,21 @@ export interface StatsDto {
   total_usdc_routed: string;
 }
 
+export interface RevenueBucketDto {
+  day:       string;   // YYYY-MM-DD (UTC)
+  calls:     number;
+  paid_usdc: string;   // exact 6-dp
+}
+
+export type RevenuePeriod = "7d" | "30d";
+
+export interface RevenueDto {
+  period:          RevenuePeriod;
+  buckets:         RevenueBucketDto[];
+  total_calls:     number;
+  total_paid_usdc: string;
+}
+
 // ---------- Fetchers ----------
 
 interface ListOptions {
@@ -103,6 +118,12 @@ export async function listTicks(slug: string, opts: { since?: string; limit?: nu
 
 export async function getStats(): Promise<StatsDto> {
   return jsonGet<StatsDto>(new URL("/v1/stats", INDEXER_URL));
+}
+
+export async function getRevenue(slug: string, period: RevenuePeriod = "7d"): Promise<RevenueDto> {
+  const url = new URL(`/v1/models/${encodeURIComponent(slug)}/revenue`, INDEXER_URL);
+  url.searchParams.set("period", period);
+  return jsonGet<RevenueDto>(url);
 }
 
 // ---------- Internals ----------

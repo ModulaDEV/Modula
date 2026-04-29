@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ExternalLink, Copy, CloudOff } from "lucide-react";
 
-import { getModel, type ModelDetailDto } from "@/lib/api";
+import { getModel, getRevenue, type ModelDetailDto, type RevenueDto } from "@/lib/api";
 import {
   shortHex,
   formatCount,
@@ -12,6 +12,7 @@ import {
   timeAgo,
 } from "@/lib/format";
 import { siteConfig } from "@/site.config";
+import { RevenueChart } from "@/components/RevenueChart";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -30,8 +31,15 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function ModelDetailPage({ params }: PageProps) {
   const { slug } = await params;
   let model: ModelDetailDto;
+  let revenue: RevenueDto | null = null;
   try {
-    model = await getModel(slug);
+    // Revenue is non-essential for the page — surface a degraded card if it
+    // fails rather than blowing up the whole detail view.
+    const [m, r] = await Promise.allSettled([getModel(slug), getRevenue(slug, "7d")]);
+    if (m.status === "rejected") throw m.reason;
+    model = m.value;
+    if (r.status === "fulfilled") revenue = r.value;
+    else console.warn("[registry/[slug]] revenue fetch failed", r.reason);
   } catch (err) {
     // 404 from the indexer = the model truly doesn't exist; render Next's
     // notFound. Anything else (network error, 5xx, indexer offline) is a
@@ -111,6 +119,18 @@ export default async function ModelDetailPage({ params }: PageProps) {
         {/* ---------- MCP endpoint ---------- */}
         <Card title="MCP endpoint" hint="Any MCP-aware agent (Claude, Cursor, custom) can call this URL.">
           <CodeRow value={mcpUrl} />
+        </Card>
+
+        {/* ---------- creator revenue ---------- */}
+        <Card
+          title="Revenue (last 7 days)"
+          hint={revenue
+            ? `${formatCount(revenue.total_calls)} calls · $${formatPrice(revenue.total_paid_usdc)} earned · avg ${(revenue.total_calls / Math.max(1, revenue.buckets.length)).toFixed(1)} calls/day`
+            : "Daily breakdown of paid inference calls."}
+        >
+          {revenue
+            ? <RevenueChart buckets={revenue.buckets} period={revenue.period} />
+            : <Empty msg="Revenue data unavailable." />}
         </Card>
 
         {/* ---------- bonding curve ---------- */}
