@@ -8,27 +8,17 @@
  *     gatewayUrl: "https://mcp.modulabase.org",
  *   });
  *
- *   // Discover
- *   const { items } = await modula.models.list({ type: "LoRA", limit: 10 });
- *
- *   // Inspect one
- *   const model = await modula.models.get("solidity-audit-v3");
- *
- *   // Call (handle payment manually for v0.1)
- *   try {
- *     const result = await modula.gateway.callTool(
- *       model.agency,
- *       "solidity_audit_v3",
- *       { source: "..." },
- *     );
- *   } catch (err) {
- *     if (err instanceof PaymentRequiredError) {
- *       // sign the EIP-3009 authorization and retry with paymentSignature
- *     } else throw err;
- *   }
+ *   // One-liner call with auto-pay (signs EIP-3009 USDC on 402):
+ *   const result = await modula.call(
+ *     "solidity-audit-v3",
+ *     "solidity_audit_v3",
+ *     { source: "..." },
+ *     viemWalletClient,
+ *   );
  */
 import { RegistryClient } from "./registry.js";
 import { GatewayClient }  from "./gateway.js";
+import { type AutoPaySigner } from "./autopay.js";
 
 export interface ModulaOptions {
   /** URL of @modula/indexer (read API). */
@@ -61,7 +51,32 @@ export class Modula {
   stats() {
     return this.models.getStats();
   }
+
+  /**
+   * Discover a model by slug, call one of its tools, and auto-pay the
+   * 402 USDC challenge — all in one await.
+   *
+   * @param slug      Registry slug, e.g. "solidity-audit-v3"
+   * @param toolName  MCP tool name exposed by that model
+   * @param args      Tool arguments
+   * @param signer    viem WalletClient or any { address, signTypedData }
+   */
+  async call(
+    slug: string,
+    toolName: string,
+    args: unknown,
+    signer: AutoPaySigner,
+  ) {
+    const model = await this.models.get(slug);
+    return this.gateway.callToolWithAutoPay(
+      model.agency,
+      toolName,
+      args,
+      signer,
+    );
+  }
 }
 
 export { RegistryClient, GatewayClient };
 export * from "./types.js";
+export * from "./autopay.js";
