@@ -1,6 +1,6 @@
 {
-  "name": "@modula/sdk",
-  "version": "0.1.0",
+  "name": "@moduladev/sdk",
+  "version": "0.2.0",
   "description": "TypeScript SDK for the Modula protocol — discover, read, and call on-chain AI models from your agent.",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,20 @@
     "build":     "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "clean":     "rm -rf dist"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ModulaDEV/Modula.git",
+    "directory": "packages/sdk"
+  },
+  "peerDependencies": {
+    "viem": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "viem": { "optional": true }
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
