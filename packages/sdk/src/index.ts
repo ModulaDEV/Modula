@@ -19,6 +19,7 @@
 import { RegistryClient } from "./registry.js";
 import { GatewayClient }  from "./gateway.js";
 import { type AutoPaySigner } from "./autopay.js";
+import { getOrCreateWallet, clearWallet, fundFromFaucet, type WalletOptions } from "./wallet.js";
 
 export interface ModulaOptions {
   /** URL of @modula/indexer (read API). */
@@ -34,6 +35,23 @@ export interface ModulaOptions {
 export class Modula {
   readonly models:  RegistryClient;
   readonly gateway: GatewayClient;
+
+  /** Browser-only wallet utilities — generates + persists a local signer. */
+  readonly wallet = {
+    /**
+     * Returns a stable AutoPaySigner for this browser session.
+     * Generates a random private key on first call and stores it in
+     * localStorage under "modula:wallet". Rehydrates on subsequent calls.
+     */
+    create: (opts?: WalletOptions) => getOrCreateWallet(opts),
+    /** Wipe the stored key. Next create() call generates a fresh one. */
+    clear:  () => clearWallet(),
+    /**
+     * Fund the address with testnet USDC via the Circle faucet.
+     * Only works on Base Sepolia — call once after wallet.create({ chain: "baseSepolia" }).
+     */
+    fund:   (address: `0x${string}`) => fundFromFaucet(address),
+  } as const;
 
   constructor(opts: ModulaOptions) {
     this.models = new RegistryClient({
@@ -80,3 +98,4 @@ export class Modula {
 export { RegistryClient, GatewayClient };
 export * from "./types.js";
 export * from "./autopay.js";
+export * from "./wallet.js";
