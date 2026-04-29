@@ -2,20 +2,16 @@
  * MCP gateway client.
  *
  * v0.1 surface:
- *   - listTools(agency)           → string[]
- *   - callTool(agency, name, args, opts?) → MCPCallResult
- *
- * Payment handling: on a 402 response, throws PaymentRequiredError
- * carrying the base64 PaymentRequirements payload. Callers can
- * sign + retry by calling callTool again with `paymentSignature`
- * in opts. A higher-level "auto-pay" flow that signs EIP-3009 with
- * a viem WalletClient lands in v0.2.
+ *   - listTools(agency)                          → MCPToolDescriptor[]
+ *   - callTool(agency, name, args, opts?)        → MCPCallResult
+ *   - callToolWithAutoPay(agency, name, args, signer, opts?) → MCPCallResult
  */
 import {
   PaymentRequiredError,
   type MCPCallResult,
   type MCPToolDescriptor,
 } from "./types.js";
+import { signPayment, decodeRequirements, type AutoPaySigner } from "./autopay.js";
 
 export interface GatewayClientOptions {
   /** Base URL of the gateway, e.g. "https://mcp.modulabase.org". */
@@ -28,6 +24,10 @@ export interface GatewayClientOptions {
 export interface CallToolOptions {
   /** Pre-signed PAYMENT-SIGNATURE header value (base64 EIP-3009 auth). */
   paymentSignature?: string;
+  signal?: AbortSignal;
+}
+
+export interface AutoPayOptions {
   signal?: AbortSignal;
 }
 
@@ -78,6 +78,33 @@ export class GatewayClient {
       { name, arguments: args },
       opts,
     );
+  }
+
+  /**
+   * Call a tool, automatically signing an EIP-3009 USDC authorization when
+   * the gateway returns 402. Requires `signer` — a viem WalletClient or any
+   * object that implements `{ address, signTypedData }`.
+   */
+  async callToolWithAutoPay(
+    agency: string,
+    name: string,
+    args: unknown,
+    signer: AutoPaySigner,
+    opts: AutoPayOptions = {},
+  ): Promise<MCPCallResult> {
+    try {
+      return await this.callTool(agency, name, args, { signal: opts.signal });
+    } catch (err) {
+      if (!(err instanceof PaymentRequiredError)) throw err;
+
+      const reqs = decodeRequirements(err.requirementsBase64);
+      const paymentSignature = await signPayment(reqs, signer);
+
+      return this.callTool(agency, name, args, {
+        paymentSignature,
+        signal: opts.signal,
+      });
+    }
   }
 
   // ---------- internals ----------
