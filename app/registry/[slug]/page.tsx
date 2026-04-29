@@ -13,6 +13,7 @@ import {
 } from "@/lib/format";
 import { siteConfig } from "@/site.config";
 import { RevenueChart } from "@/components/RevenueChart";
+import { CurveSimulator } from "@/components/CurveSimulator";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -138,6 +139,11 @@ export default async function ModelDetailPage({ params }: PageProps) {
           {trend.length > 0
             ? <Chart points={trend} />
             : <Empty msg="No curve activity yet." />}
+        </Card>
+
+        {/* ---------- curve simulator ---------- */}
+        <Card title="Bonding curve simulator" hint="Estimate how call volume moves the curve price over 30 / 90 days.">
+          <CurveSimulator supply={model.latest_supply ?? 0} />
         </Card>
 
         {/* ---------- on-chain ---------- */}
