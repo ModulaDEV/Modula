@@ -25,6 +25,11 @@ export class RegistryClient {
     this.fetchFn = opts.fetch ?? globalThis.fetch.bind(globalThis);
   }
 
+  /** Alias for listModels. */
+  list(opts: ListModelsOptions = {}) { return this.listModels(opts); }
+  /** Alias for getModel. */
+  get(slug: string) { return this.getModel(slug); }
+
   async listModels(opts: ListModelsOptions = {}): Promise<ListResponse<ModelDto>> {
     const url = new URL(`${this.baseUrl}/v1/models`);
     for (const [k, v] of Object.entries(opts)) {
