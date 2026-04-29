@@ -14,6 +14,7 @@ import { cors } from "hono/cors";
 import { healthz }   from "./routes/healthz.js";
 import { models }    from "./routes/models.js";
 import { ticks }     from "./routes/ticks.js";
+import { revenue }   from "./routes/revenue.js";
 import { stats }     from "./routes/stats.js";
 import { openapi }   from "./routes/openapi.js";
 import { jsonError } from "./errors.js";
@@ -37,6 +38,7 @@ export function createApi(deps: ApiDeps): Hono {
   app.route("/healthz",                  healthz(deps));
   app.route("/v1/models",                models(deps));
   app.route("/v1/models/:slug/ticks",    ticks(deps));
+  app.route("/v1/models/:slug/revenue",  revenue(deps));
   app.route("/v1/stats",                 stats(deps));
   app.route("/",                         openapi(deps));
 

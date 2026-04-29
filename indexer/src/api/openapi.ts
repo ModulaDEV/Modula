@@ -106,6 +106,24 @@ export function buildOpenApiDoc(opts: { baseUrl: string; version: string }) {
           },
         },
       },
+      "/v1/models/{slug}/revenue": {
+        get: {
+          tags: ["models"],
+          summary: "Daily revenue + call-count buckets for the creator dashboard.",
+          parameters: [
+            { name: "slug",   in: "path",  required: true, schema: { type: "string" } },
+            { name: "period", in: "query", schema: { type: "string", enum: ["7d", "30d"], default: "7d" }, description: "Window length. Buckets are zero-filled, one per UTC day." },
+          ],
+          responses: {
+            "200": {
+              description: "Buckets ordered ascending by day, plus window totals.",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/Revenue" } } },
+            },
+            "400": COMMON_400,
+            "404": COMMON_404,
+          },
+        },
+      },
       "/v1/stats": {
         get: {
           tags: ["stats"],
@@ -203,6 +221,25 @@ export function buildOpenApiDoc(opts: { baseUrl: string; version: string }) {
           properties: {
             items:      { type: "array", items: { $ref: "#/components/schemas/Tick" } },
             next_since: { type: "string", format: "date-time", nullable: true, description: "Pass back as ?since on the next request to get only new ticks." },
+          },
+        },
+        RevenueBucket: {
+          type: "object",
+          required: ["day", "calls", "paid_usdc"],
+          properties: {
+            day:       { type: "string", format: "date", example: "2026-04-29" },
+            calls:     { type: "integer" },
+            paid_usdc: { $ref: "#/components/schemas/UsdcAmount" },
+          },
+        },
+        Revenue: {
+          type: "object",
+          required: ["period", "buckets", "total_calls", "total_paid_usdc"],
+          properties: {
+            period:          { type: "string", enum: ["7d", "30d"] },
+            buckets:         { type: "array", items: { $ref: "#/components/schemas/RevenueBucket" } },
+            total_calls:     { type: "integer" },
+            total_paid_usdc: { $ref: "#/components/schemas/UsdcAmount" },
           },
         },
         Stats: {
