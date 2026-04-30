@@ -24,6 +24,7 @@ const ListQuery = z.object({
   type:   z.string().min(1).max(64).optional(),
   base:   z.string().min(1).max(64).optional(),
   q:      z.string().min(1).max(128).optional(),
+  tag:    z.string().min(1).max(64).optional(),
   limit:  z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
 });
@@ -37,8 +38,30 @@ export function models(deps: Deps): Hono {
     if (!parsed.success) {
       throw BadRequest(parsed.error.errors.map((e) => e.message).join(", "));
     }
-    const { type, base, q, limit, offset } = parsed.data;
-    const qLike = q ? `%${q}%` : null;
+    const { type, base, q, tag, limit, offset } = parsed.data;
+
+    // Build parameterised WHERE / JOIN clauses dynamically so unused
+    // filters don't appear in the query at all.
+    const p: unknown[] = [];
+    const where: string[] = [];
+    let tagJoin  = "";
+    let orderBy  = "m.registered_at DESC";
+
+    if (type) { p.push(type); where.push(`m.model_type = $${p.length}`); }
+    if (base) { p.push(base); where.push(`m.base_model = $${p.length}`); }
+    if (tag)  {
+      p.push(tag);
+      tagJoin = `JOIN model_tags mt ON mt.model_id = m.id AND mt.tag = $${p.length}`;
+    }
+    if (q) {
+      p.push(q);
+      where.push(`m.search_vec @@ plainto_tsquery('english', $${p.length})`);
+      orderBy = `ts_rank(m.search_vec, plainto_tsquery('english', $${p.length})) DESC`;
+    }
+
+    const whereClause  = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const listParams   = [...p, limit, offset];
+    const countParams  = [...p];
 
     const listSql = `
       WITH stats AS (
@@ -76,27 +99,24 @@ export function models(deps: Deps): Hono {
              lt.latest_price_usdc,
              sp.trend
         FROM models m
+        ${tagJoin}
    LEFT JOIN stats       s  ON s.model_id  = m.id
    LEFT JOIN latest_tick lt ON lt.model_id = m.id
    LEFT JOIN sparkline   sp ON sp.model_id = m.id
-       WHERE ($1::text IS NULL OR m.model_type = $1)
-         AND ($2::text IS NULL OR m.base_model = $2)
-         AND ($3::text IS NULL OR m.slug ILIKE $3)
-       ORDER BY m.registered_at DESC
-       LIMIT $4 OFFSET $5
+        ${whereClause}
+       ORDER BY ${orderBy}
+       LIMIT $${listParams.length - 1} OFFSET $${listParams.length}
     `;
     const countSql = `
       SELECT COUNT(*)::text AS total
         FROM models m
-       WHERE ($1::text IS NULL OR m.model_type = $1)
-         AND ($2::text IS NULL OR m.base_model = $2)
-         AND ($3::text IS NULL OR m.slug ILIKE $3)
+        ${tagJoin}
+        ${whereClause}
     `;
 
-    const params = [type ?? null, base ?? null, qLike, limit, offset];
     const [{ rows }, { rows: countRows }] = await Promise.all([
-      deps.db.pool.query<ModelRow>(listSql, params),
-      deps.db.pool.query<{ total: string }>(countSql, params.slice(0, 3)),
+      deps.db.pool.query<ModelRow>(listSql, listParams),
+      deps.db.pool.query<{ total: string }>(countSql, countParams),
     ]);
 
     return c.json({
