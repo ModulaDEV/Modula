@@ -90,6 +90,7 @@ interface ListOptions {
   type?:   string;
   base?:   string;
   q?:      string;
+  tag?:    string;
   limit?:  number;
   offset?: number;
 }
