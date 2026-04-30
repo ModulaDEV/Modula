@@ -34,6 +34,7 @@ const ManifestSchema = z.object({
   capabilities: z.array(z.string()).optional(),
   inputSchema:  z.record(z.unknown()).optional(),
   outputSchema: z.record(z.unknown()).optional(),
+  tags:         z.array(z.string().min(1).max(32)).max(20).optional(),
   runtime: z.object({
     url:       z.string().url(),
     timeoutMs: z.number().int().min(1_000).max(300_000).optional(),
