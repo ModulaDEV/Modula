@@ -99,3 +99,4 @@ export { RegistryClient, GatewayClient };
 export * from "./types.js";
 export * from "./autopay.js";
 export * from "./wallet.js";
+export * from "./pipeline.js";

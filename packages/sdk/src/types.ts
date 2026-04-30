@@ -65,6 +65,7 @@ export interface ListModelsOptions {
   type?:   string;
   base?:   string;
   q?:      string;
+  tag?:    string;
   limit?:  number;
   offset?: number;
 }
