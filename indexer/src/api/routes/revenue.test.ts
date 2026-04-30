@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest"
 import { Hono } from "hono";
 
 import { revenue } from "./revenue.js";
+import { jsonError } from "../errors.js";
 import { setupTestDb, type TestDb } from "../../test-helpers/testdb.js";
 import type { Database } from "../../db.js";
 import { hexToBytea } from "../../listeners/hex.js";
@@ -27,6 +28,7 @@ describe("/v1/models/:slug/revenue", () => {
     };
     app = new Hono();
     app.route("/v1/models/:slug/revenue", revenue({ db: database }));
+    app.onError((err, c) => jsonError(c, err));
   });
 
   afterAll(async () => { await db.teardown(); });
