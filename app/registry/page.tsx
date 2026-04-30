@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ArrowUpRight, Search, Filter } from "lucide-react";
+import { ArrowUpRight, Filter } from "lucide-react";
+import { Suspense } from "react";
 import { MODELS, type RegistryModel } from "@/data/models";
 import { listModels } from "@/lib/api";
 import { toRegistryModel } from "@/lib/adapters";
 import { siteConfig } from "@/site.config";
+import { RegistrySearch } from "@/components/RegistrySearch";
 
 export const metadata = {
   title: "Registry",
@@ -13,14 +15,17 @@ export const metadata = {
 
 export const revalidate = 30;
 
-export default async function RegistryPage() {
-  // Server-side fetch with graceful fallback to mock data so the page
-  // stays renderable in dev (no indexer running) and during platform
-  // failover.
+export default async function RegistryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; tag?: string }>;
+}) {
+  const { q, tag } = await searchParams;
+
   let rows: readonly RegistryModel[] = MODELS;
   let total = MODELS.length;
   try {
-    const res = await listModels({ limit: 50 });
+    const res = await listModels({ limit: 50, q, tag });
     if (res.items.length > 0) {
       rows  = res.items.map(toRegistryModel);
       total = res.total;
@@ -80,36 +85,52 @@ export default async function RegistryPage() {
               background: "var(--bg-soft)",
             }}
           >
-            <Search size={14} style={{ color: "var(--ink-40)" }} />
+            <Suspense>
+              <RegistrySearch />
+            </Suspense>
             <div
               className="mono"
-              style={{ fontSize: 12, color: "var(--ink-60)" }}
+              style={{ fontSize: 12, color: "var(--ink-60)", whiteSpace: "nowrap" }}
             >
-              {rows.length} of {total.toLocaleString()} models shown · filters coming soon
+              {rows.length} of {total.toLocaleString()} models
+              {q ? ` · "${q}"` : ""}
+              {tag ? ` · #${tag}` : ""}
             </div>
             <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-              {["All", "LoRA", "Adapter", "Small", "Domain"].map((t) => (
-                <span
+              {["LoRA", "Adapter", "Small", "Domain"].map((t) => (
+                <Link
                   key={t}
+                  href={`/registry?tag=${t.toLowerCase()}`}
                   style={{
                     fontSize: 12,
                     padding: "0.3rem 0.6rem",
                     borderRadius: 6,
                     border: "1px solid var(--border)",
                     color: "var(--ink-60)",
-                    background: t === "All" ? "var(--brand-soft)" : "transparent",
-                    borderColor: t === "All" ? "var(--brand-border)" : "var(--border)",
+                    textDecoration: "none",
+                    background: tag === t.toLowerCase() ? "var(--brand-soft)" : "transparent",
+                    borderColor: tag === t.toLowerCase() ? "var(--brand-border)" : "var(--border)",
                   }}
                 >
                   {t}
-                </span>
+                </Link>
               ))}
-              <span
-                className="btn btn-sm"
-                style={{ fontSize: 12, padding: "0.3rem 0.65rem" }}
+              <Link
+                href="/registry"
+                style={{
+                  fontSize: 12,
+                  padding: "0.3rem 0.65rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  border: "1px solid var(--border)",
+                  borderRadius: 6,
+                  color: "var(--ink-60)",
+                  textDecoration: "none",
+                }}
               >
-                <Filter size={12} /> Filter
-              </span>
+                <Filter size={12} /> All
+              </Link>
             </div>
           </div>
 
