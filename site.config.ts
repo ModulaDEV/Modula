@@ -17,12 +17,8 @@ export const siteConfig = {
   whitepaperPath: "/whitepaper",
 
   buyUrl: "https://dexscreener.com/base/modula",
-  // Sepolia explorer pinned to the deployed ModulaRegistry contract so
-  // 'Basescan' from any nav surface lands on something real, not the
-  // explorer homepage. Flip to the mainnet Registry address after the
-  // mainnet deploy.
   baseExplorerUrl:
-    "https://sepolia.basescan.org/address/0x49E1Ed74bcaDd4EDF38520EC8330391b9E745F52",
+    "https://basescan.org/address/0x49E1Ed74bcaDd4EDF38520EC8330391b9E745F52",
 
   chain: "Base",
   standard: "ERC-7527",
