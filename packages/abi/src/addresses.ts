@@ -18,12 +18,12 @@ export const ADDRESSES = {
     name: "Base",
     usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
 
-    // Set after the canonical mainnet deploy.
-    registry:        "0x0000000000000000000000000000000000000000",
-    factory:         "0x0000000000000000000000000000000000000000",
-    accessRouter:    "0x0000000000000000000000000000000000000000",
-    appImpl:         "0x0000000000000000000000000000000000000000",
-    agencyImpl:      "0x0000000000000000000000000000000000000000",
+    // Deployed 2026-04-29 via contracts/script/Deploy.s.sol (chain 8453).
+    registry:        "0x49E1Ed74bcaDd4EDF38520EC8330391b9E745F52",
+    factory:         "0xf4B028367012bA8D42fB2D1a9bD0A69b0429eE98",
+    accessRouter:    "0xb1f2ce5B129d4ea92375425A3F1678aEd4c5d188",
+    appImpl:         "0x6e5b4DA9469d98520BB3dBb232F16cbb799aeB61",
+    agencyImpl:      "0xb76763aAeE3Fa60ab39f9586886dFBc6B8cba704",
   },
 
   baseSepolia: {
