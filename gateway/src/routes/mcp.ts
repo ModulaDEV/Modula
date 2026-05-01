@@ -82,6 +82,80 @@ export function mcp(deps: McpDeps): Hono {
     },
   );
 
+  // SSE streaming endpoint — same x402 gating, response is text/event-stream
+  app.post(
+    "/stream",
+    x402Middleware({
+      clients:            deps.clients,
+      facilitator:        deps.facilitator,
+      registry:           deps.config.addresses.registry,
+      recordCache:        deps.recordCache,
+      quoteCache:         deps.quoteCache,
+      network:            deps.network,
+      log:                deps.log,
+      modulaTokenAddress: deps.modulaTokenAddress,
+    }),
+    async (c) => {
+      const body = c.get("rpc:body" as never) as { id?: number | string; params?: unknown } | undefined;
+      const params = (body?.params as { name?: string; arguments?: unknown } | undefined) ?? {};
+      const record   = c.get("x402:record" as never) as ModelRecord;
+      const manifest = await fetchManifest(
+        { manifestCache: deps.manifestCache, log: deps.log },
+        record.manifestURI,
+      ).catch(() => null);
+
+      const runtimeUrl = manifest?.runtime?.url;
+      if (!runtimeUrl) {
+        return c.text("data: [error: no runtime URL in manifest]\n\n", 502, {
+          "content-type": "text/event-stream",
+        });
+      }
+
+      const ctrl    = new AbortController();
+      const timeout = manifest?.runtime?.timeoutMs ?? 120_000;
+      const t       = setTimeout(() => ctrl.abort(), timeout);
+
+      let upstream: Response;
+      try {
+        upstream = await fetch(runtimeUrl, {
+          method:  "POST",
+          headers: {
+            "content-type":        "application/json",
+            accept:                "text/event-stream",
+            "x-modula-model-id":   record.id,
+            "x-modula-model-slug": record.slug,
+          },
+          body:   JSON.stringify({ input: params.arguments ?? {} }),
+          signal: ctrl.signal,
+        });
+      } catch (err) {
+        clearTimeout(t);
+        deps.log.warn({ err, slug: record.slug }, "stream_upstream_error");
+        return c.text("data: [error: upstream unreachable]\n\n", 502, {
+          "content-type": "text/event-stream",
+        });
+      }
+
+      clearTimeout(t);
+
+      if (!upstream.ok || !upstream.body) {
+        return c.text(`data: [error: upstream ${upstream.status}]\n\n`, 502, {
+          "content-type": "text/event-stream",
+        });
+      }
+
+      return new Response(upstream.body, {
+        status:  200,
+        headers: {
+          "content-type":      "text/event-stream",
+          "cache-control":     "no-cache",
+          connection:          "keep-alive",
+          "x-accel-buffering": "no",
+        },
+      });
+    },
+  );
+
   return app;
 }
 
