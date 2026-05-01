@@ -36,6 +36,9 @@ export interface ModelRow {
   latest_supply?:     string | null;
   latest_price_usdc?: string | null;
   trend?:             string[] | null;
+  // Health monitor columns (from migration 006_health.sql):
+  health_status?:    "up" | "down" | null;
+  last_healthy_at?:  Date | null;
 }
 
 export interface TickRow {
@@ -73,6 +76,8 @@ export function serializeModel(r: ModelRow): Record<string, unknown> {
     latest_supply:     r.latest_supply   != null ? Number(r.latest_supply) : null,
     latest_price_usdc: r.latest_price_usdc ?? null,
     trend:             r.trend ?? [],
+    health_status:     r.health_status   ?? null,
+    last_healthy_at:   r.last_healthy_at?.toISOString() ?? null,
   };
 }
 
