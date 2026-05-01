@@ -5,6 +5,7 @@
  *   - listTools(agency)                          → MCPToolDescriptor[]
  *   - callTool(agency, name, args, opts?)        → MCPCallResult
  *   - callToolWithAutoPay(agency, name, args, signer, opts?) → MCPCallResult
+ *   - streamTool(agency, name, args, signer, opts?) → AsyncIterableIterator<string>
  */
 import {
   PaymentRequiredError,
@@ -107,7 +108,90 @@ export class GatewayClient {
     }
   }
 
+  /**
+   * Stream a model tool's output as SSE chunks.
+   *
+   * Opens a POST to `POST /m/:agency/mcp/stream` on the gateway and
+   * yields one string per `data:` line. Payment is signed on first
+   * attempt; a 402 response triggers auto-pay and a single retry.
+   */
+  async *streamTool(
+    agency: string,
+    name: string,
+    args: unknown,
+    signer: AutoPaySigner,
+    opts: AutoPayOptions = {},
+  ): AsyncIterableIterator<string> {
+    let sig: string | undefined;
+    try {
+      yield* this._stream(agency, name, args, sig, opts.signal);
+      return;
+    } catch (err) {
+      if (!(err instanceof PaymentRequiredError)) throw err;
+      const reqs = decodeRequirements(err.requirementsBase64);
+      sig = await signPayment(reqs, signer);
+    }
+    yield* this._stream(agency, name, args, sig, opts.signal);
+  }
+
   // ---------- internals ----------
+
+  private async *_stream(
+    agency: string,
+    name: string,
+    args: unknown,
+    sig: string | undefined,
+    signal?: AbortSignal,
+  ): AsyncIterableIterator<string> {
+    const url = `${this.baseUrl}/m/${agency}/mcp/stream`;
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      accept:         "text/event-stream",
+    };
+    if (this.bearer) headers["authorization"] = `Bearer ${this.bearer}`;
+    if (sig) headers["PAYMENT-SIGNATURE"] = sig;
+
+    const res = await this.fetchFn(url, {
+      method: "POST",
+      headers,
+      signal,
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id:      this.nextId++,
+        method:  "tools/call",
+        params:  { name, arguments: args },
+      }),
+    });
+
+    if (res.status === 402) {
+      const requirements = res.headers.get("PAYMENT-REQUIRED") ?? "";
+      throw new PaymentRequiredError(requirements, url);
+    }
+
+    if (!res.ok || !res.body) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Modula gateway stream ${res.status}: ${text.slice(0, 200)}`);
+    }
+
+    const reader  = res.body.getReader();
+    const dec     = new TextDecoder();
+    let   buf     = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) yield line.slice(6);
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
 
   private async rpc<T>(
     agency: string,
