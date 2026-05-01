@@ -22,6 +22,7 @@ import { createDatabase }   from "./db.js";
 import { createClient }     from "./client.js";
 import { startListeners }   from "./listeners/index.js";
 import { createApi }        from "./api/server.js";
+import { startHealthChecks } from "./jobs/healthCheck.js";
 
 async function main(): Promise<void> {
   const config = loadConfig(process.env);
@@ -57,6 +58,8 @@ async function main(): Promise<void> {
     abort: abortCtrl.signal,
   }).catch((err) => log.error({ err }, "listeners_crashed"));
 
+  const stopHealthChecks = startHealthChecks(db.pool, log);
+
   const api = createApi({ config, db, client, log });
   const httpServer = serve({
     fetch:    api.fetch,
@@ -67,6 +70,7 @@ async function main(): Promise<void> {
   const shutdown = (signal: string): void => {
     log.info({ signal }, "indexer_shutdown");
     abortCtrl.abort();
+    stopHealthChecks();
     httpServer.close();
     void listenersDone.finally(async () => {
       await db.close();
