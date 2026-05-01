@@ -15,6 +15,11 @@
  *     { source: "..." },
  *     viemWalletClient,
  *   );
+ *
+ *   // Streaming inference — yields SSE chunks as they arrive:
+ *   for await (const chunk of modula.stream("llm-v1", "generate", { prompt: "Hello" }, signer)) {
+ *     process.stdout.write(chunk);
+ *   }
  */
 import { RegistryClient } from "./registry.js";
 import { GatewayClient }  from "./gateway.js";
@@ -92,6 +97,28 @@ export class Modula {
       args,
       signer,
     );
+  }
+
+  /**
+   * Stream a model tool's output over SSE.
+   *
+   * Yields one string per `data:` event from the gateway's
+   * `POST /m/:agency/mcp/stream` endpoint. Payment is auto-signed
+   * on the first 402 — the caller never sees the retry.
+   *
+   * @param slug      Registry slug, e.g. "llm-v1"
+   * @param toolName  MCP tool name
+   * @param args      Tool arguments
+   * @param signer    viem WalletClient or any { address, signTypedData }
+   */
+  async *stream(
+    slug: string,
+    toolName: string,
+    args: unknown,
+    signer: AutoPaySigner,
+  ): AsyncIterableIterator<string> {
+    const model = await this.models.get(slug);
+    yield* this.gateway.streamTool(model.agency, toolName, args, signer);
   }
 }
 
