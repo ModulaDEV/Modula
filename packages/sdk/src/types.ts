@@ -24,6 +24,8 @@ export interface ModelDto {
   latest_supply:     number | null;
   latest_price_usdc: string | null;
   trend:             string[];
+  health_status:     "up" | "down" | null;
+  last_healthy_at:   string | null;
 }
 
 export interface TickDto {
