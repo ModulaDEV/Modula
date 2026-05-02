@@ -11,7 +11,8 @@ through the x402 payment rail.
 | `GET`  | `/healthz/live`             | Liveness probe. |
 | `GET`  | `/healthz/ready`            | Readiness probe. |
 | `GET`  | `/m/:agency/manifest.json`  | Public manifest read for a model. |
-| `POST` | `/m/:agency/mcp`            | MCP JSON-RPC: `initialize`, `tools/list`, `tools/call`. |
+| `POST` | `/m/:agency/mcp`            | MCP JSON-RPC over EVM x402 (Base settlement). |
+| `POST` | `/m/:agency/mcp/svm`        | MCP JSON-RPC over SVM x402 (Solana settlement). Mounted only when `SVM_ENABLED=true`. |
 
 ## Request lifecycle (paid `tools/call`)
 
@@ -97,11 +98,22 @@ gateway/src/
 │   ├── types.ts           wire types (PaymentRequirements etc.)
 │   ├── codec.ts           base64-JSON encode + decode
 │   ├── facilitator.ts     /verify + /settle HTTP client
-│   └── middleware.ts      challenge → verify → next → settle
+│   └── middleware.ts      EVM challenge → verify → next → settle
+├── svm/                   SVM (Solana) x402 settlement path
+│   ├── constants.ts       USDC mints, RPC URLs, commitment level
+│   ├── pubkey.ts          base58 pubkey shape validator
+│   ├── codec.ts           decodeSvmPayload from PAYMENT-SIGNATURE
+│   ├── cluster.ts         usdcMintFor, defaultRpcUrlFor
+│   ├── amount.ts          to/from USDC base units
+│   ├── errors.ts          WrongRecipient, WrongAmount, StaleBlockhash, …
+│   ├── facilitator.ts     SvmFacilitatorClient
+│   ├── middleware.ts      SVM challenge → verify → next → settle
+│   └── index.ts           public barrel
 └── routes/
-    ├── healthz.ts         liveness + readiness
+    ├── healthz.ts         liveness + readiness + settlement mount status
     ├── manifest.ts        public manifest read
-    └── mcp.ts             JSON-RPC 2.0 surface
+    ├── mcp.ts             JSON-RPC 2.0 surface, EVM-paid
+    └── mcp-svm.ts         JSON-RPC 2.0 surface, SVM-paid
 ```
 
 ## Security
