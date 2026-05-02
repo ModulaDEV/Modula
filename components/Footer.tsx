@@ -94,7 +94,7 @@ export function Footer() {
               }}
             >
               A permissionless, on-chain registry for AI models.
-              Pay-per-inference. Agent-native. Built on @Base.
+              Pay-per-inference. Agent-native. Built on @Base, expanding to @Solana.
             </p>
             <div style={{ display: "flex", gap: 10, marginTop: "1.25rem" }}>
               <a
@@ -210,7 +210,7 @@ export function Footer() {
               flexWrap: "wrap",
             }}
           >
-            <span className="mono">Chain: {siteConfig.chain}</span>
+            <span className="mono">Chain: {siteConfig.chain} · {siteConfig.secondaryChain}</span>
             <span className="mono">Standard: {siteConfig.standard}</span>
             <span className="mono">Payments: {siteConfig.paymentRail}</span>
             <span className="mono">Agents: {siteConfig.agentInterface}</span>
