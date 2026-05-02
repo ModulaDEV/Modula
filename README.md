@@ -126,6 +126,36 @@ No API keys, no subscriptions, no manual top-ups.
 
 ---
 
+## 🌍 Multi-chain — one protocol, two settlement layers
+
+> **Base is home. Solana is expansion. Adding, not migrating.**
+
+Modula's core contracts, model registry, and **$MODULA** protocol token
+all live on **Base** — and they stay there. All future protocol
+development continues on Base.
+
+The protocol is expanding to **Solana** because:
+
+1. **x402 already supports Solana natively** — USDC settlement on SVM is
+   not a rebuild, it is extending existing infrastructure.
+2. **Solana's sub-second finality and fraction-of-a-cent fees** suit
+   high-frequency inference micropayments where an agent may call models
+   thousands of times per day.
+3. **Agent ecosystems on Solana** can call Modula models without leaving
+   their chain.
+
+### Two tokens, one protocol
+- **$MODULA on Base** — the protocol token. Holder-discount on every
+  inference call (≥1k = 10% off, ≥10k = 20% off). Unchanged.
+- **Solana token** — separate, Solana-native, with its own utility on
+  Solana-settled inference. Not bridged. Not wrapped. Not a migration.
+
+Models registered on Base are callable from Solana through the gateway.
+The SDK works on both chains with zero code changes for the caller.
+See [SOLANA.md](./SOLANA.md) for the full architecture.
+
+---
+
 ## 🌐 This repository
 
 This is the **public, open-source** monorepo for the Modula protocol —
