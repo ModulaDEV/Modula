@@ -11,6 +11,8 @@ const baseConfig: Config = {
   BASE_RPC_URL: "http://localhost:8545",
   X402_FACILITATOR_URL: "http://localhost:9999",
   X402_FACILITATOR_API_KEY: "k",
+  SVM_ENABLED: false,
+  SVM_NETWORK: "solana-devnet",
   OAUTH_ENABLED: false,
   LOG_LEVEL: "info",
   NODE_ENV: "test",
