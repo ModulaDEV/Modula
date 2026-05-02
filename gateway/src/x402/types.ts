@@ -8,7 +8,19 @@
  */
 
 export type X402Scheme  = "exact" | "upto";
-export type X402Network = "base"  | "base-sepolia";
+
+/**
+ * Networks the gateway can settle on. EVM networks use the EIP-3009
+ * `transferWithAuthorization` flow; SVM networks (Solana mainnet +
+ * devnet) use a signed SPL Token-2022 transfer. Both are valid `exact`
+ * scheme variants per the x402 spec, but they carry completely
+ * different payload shapes.
+ */
+export type X402Network =
+  | "base"
+  | "base-sepolia"
+  | "solana"
+  | "solana-devnet";
 
 /// @notice The 402-response payload the server returns when payment is missing.
 ///         Base64 of this lands in the `PAYMENT-REQUIRED` header.
