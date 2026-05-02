@@ -9,10 +9,13 @@ import { cors }    from "hono/cors";
 import { healthz } from "./routes/healthz.js";
 import { manifest } from "./routes/manifest.js";
 import { mcp }     from "./routes/mcp.js";
+import { mcpSvm }  from "./routes/mcp-svm.js";
 import { oauthMetadata } from "./routes/oauth-metadata.js";
 import { createClients }     from "./chain/clients.js";
 import { TtlCache }          from "./chain/cache.js";
 import { createFacilitator } from "./x402/facilitator.js";
+import { createSvmFacilitator } from "./svm/facilitator.js";
+import { usdcMintFor, defaultRpcUrlFor } from "./svm/cluster.js";
 import { createVerifier, bearerMiddleware } from "./oauth.js";
 
 import type { Config } from "./config.js";
@@ -95,6 +98,54 @@ export function createApp(deps: AppDeps): Hono {
     network,
     modulaTokenAddress: deps.config.MODULA_TOKEN_ADDRESS as `0x${string}` | undefined,
   }));
+
+  // SVM settlement path — only mounted when SVM_ENABLED=true. When the
+  // flag is off, requests to /m/:agency/mcp/svm fall through to the
+  // notFound handler and return 404, which is the right signal: the
+  // route does not exist on this gateway.
+  if (deps.config.SVM_ENABLED) {
+    if (!deps.config.SVM_X402_FACILITATOR_URL) {
+      throw new Error(
+        "SVM_ENABLED=true but SVM_X402_FACILITATOR_URL is unset",
+      );
+    }
+    const svmNetwork  = deps.config.SVM_NETWORK;
+    const svmRpcUrl   = deps.config.SVM_RPC_URL ?? defaultRpcUrlFor(svmNetwork);
+    const svmUsdcMint = usdcMintFor(svmNetwork);
+    const svmFacilitator = createSvmFacilitator({
+      baseUrl: deps.config.SVM_X402_FACILITATOR_URL,
+      apiKey:  deps.config.SVM_X402_FACILITATOR_API_KEY,
+    });
+    deps.log.info(
+      { network: svmNetwork, rpc: svmRpcUrl, mint: svmUsdcMint },
+      "svm_route_mounted",
+    );
+
+    // Same CORS shape as the EVM /mcp endpoint.
+    app.use("/m/:agency/mcp/svm", cors({
+      origin: "*",
+      allowHeaders: [
+        "content-type",
+        "authorization",
+        "PAYMENT-SIGNATURE",
+        "X-Wallet-Address",
+        "x-modula-agent",
+      ],
+      exposeHeaders: ["PAYMENT-RESPONSE", "WWW-Authenticate"],
+      maxAge: 600,
+    }));
+    app.use("/m/:agency/mcp/svm", bearerMiddleware(verifier, resourceMetadataPath));
+    app.route("/m/:agency/mcp/svm", mcpSvm({
+      ...deps,
+      clients,
+      facilitator:   svmFacilitator,
+      recordCache,
+      quoteCache,
+      manifestCache,
+      network:       svmNetwork,
+      usdcMint:      svmUsdcMint,
+    }));
+  }
 
   // 404 fallback
   app.notFound((c) => c.json({ error: { code: "not_found", message: "no route" } }, 404));
