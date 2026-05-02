@@ -60,15 +60,26 @@ export interface ListResponse<T> {
   offset: number;
 }
 
+/**
+ * Cross-rail breakdown of call counts and USDC routed.
+ * Returned by the indexer alongside the unified top-level totals.
+ */
+export interface RailBreakdown {
+  evm: { total_calls: number; total_paid_usdc: string };
+  svm: { total_calls: number; total_paid_usdc: string };
+}
+
 export interface ModelDetailDto extends ModelDto {
   recent_ticks: TickDto[];
   recent_calls: CallDto[];
+  by_rail:      RailBreakdown;
 }
 
 export interface StatsDto {
   total_models:      number;
   total_calls:       number;
   total_usdc_routed: string;
+  by_rail:           RailBreakdown;
 }
 
 export interface RevenueBucketDto {
