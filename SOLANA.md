@@ -180,11 +180,39 @@ Current strategy:
 | Indexer + gateway on Base | ✅ Live |
 | `@modula/sdk` with auto-pay, streaming, pipelines | ✅ Shipped |
 | `$MODULA` on Base + holder discount | ✅ Live |
-| Frontend messaging for dual-chain | 🟡 In progress |
+| Frontend messaging for dual-chain | ✅ Shipped |
+| Solana x402 settlement path on gateway — scaffolding | 🟡 In progress |
+| Solana x402 settlement path on gateway — live | ⏳ Planned |
 | Solana SDK adapter | ⏳ Planned |
-| Solana x402 settlement path on gateway | ⏳ Planned |
-| Solana-native token launch (PumpFun) | ⏳ Days out |
+| Indexer Solana event source | ⏳ Planned |
+| Solana-native token contract | ⏳ Days out (PumpFun) |
 | wXRP integration | ⏳ After Solana foundation is stable |
+
+### Gateway SVM scaffolding — what is in the repo today
+
+All of the following have landed on `main`:
+
+- `gateway/src/svm/constants.ts` — USDC mints, RPC URLs, commitment level, tx-age cap
+- `gateway/src/svm/pubkey.ts` — pure-TS base58 pubkey shape validator (12 tests)
+- `gateway/src/svm/codec.ts` — `decodeSvmPayload()` for `PAYMENT-SIGNATURE` (11 tests)
+- `gateway/src/svm/cluster.ts` — `usdcMintFor`, `defaultRpcUrlFor`, `clusterDisplayName` (7 tests)
+- `gateway/src/svm/facilitator.ts` — `SvmFacilitatorClient` HTTP shim
+- `gateway/src/svm/middleware.ts` — `svmMiddleware` x402 settlement gate
+- `gateway/src/routes/mcp-svm.ts` — `POST /m/:agency/mcp/svm` MCP dispatcher
+- `gateway/src/app.ts` — `SVM_ENABLED` flag wires the route on demand
+- `gateway/src/config.ts` — `SVM_ENABLED`, `SVM_NETWORK`, `SVM_RPC_URL`,
+  `SVM_X402_FACILITATOR_URL`, `SVM_X402_FACILITATOR_API_KEY`
+
+What is **not** yet wired:
+- An actual SVM x402 facilitator deployment (the gateway talks to one over
+  HTTP — when that endpoint exists, set `SVM_X402_FACILITATOR_URL` and
+  flip `SVM_ENABLED=true`).
+- The Solana-side SDK adapter.
+- The on-chain access logger for SVM tx signatures (the EVM
+  AccessRouter expects `bytes32`, not base58 — needs a registry-side
+  upgrade).
+- Per-model SVM treasury column on the registry (today the EVM treasury
+  address is reused as a placeholder).
 
 ---
 
