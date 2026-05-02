@@ -2,108 +2,64 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Play, Copy, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Play } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { siteConfig } from "@/site.config";
-import { useToast } from "@/components/Toast";
 
 const easeOut = [0.2, 0.7, 0.2, 1] as const;
 
-/**
- * Headline copy is split into a static array of fragments so the
- * typing animation can interpolate one character per tick across the
- * entire headline including the line break, rather than typing each
- * line independently.
- */
 const HEADLINE = "Permissionless AI,\non‑chain.";
 
-/**
- * Placeholder until the $MODULA token launches and a real CA exists
- * on Base mainnet. Length matches a real EVM address so the button
- * width doesn't shift when the value is swapped in later.
- */
-const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-/**
- * Three MCP `tools/call` payloads the terminal cycles through to
- * convey 'this is a live, repeatable protocol surface, not a one-shot
- * screenshot'. Each one is a real, valid MCP envelope that the
- * deployed gateway would accept; only the prompt argument differs.
- */
-const TERMINAL_FRAMES: ReadonlyArray<{ url: string; body: string }> = [
-  {
-    url: "modulabase.org/m/echo‑test/mcp",
-    body: `POST /m/0xd619…387B/mcp
-Content-Type: application/json
-PAYMENT-SIGNATURE: 0x7a4b…f2
-
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "echo-test",
-    "arguments": { "prompt": "hello, modula" }
-  }
-}
-
-→ 200 OK
-PAYMENT-RESPONSE: settled · 0.001 USDC
-{ "result": { "echo": "hello, modula" } }`,
-  },
-  {
-    url: "modulabase.org/m/solidity‑audit‑v3/mcp",
-    body: `POST /m/0x4a7f…b12c/mcp
-Content-Type: application/json
-PAYMENT-SIGNATURE: 0x9c1e…a3
-
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "method": "tools/call",
-  "params": {
-    "name": "solidity-audit-v3",
-    "arguments": {
-      "contract": "Vault.sol",
-      "checks": ["reentrancy", "overflow"]
-    }
-  }
-}
-
-→ 200 OK
-PAYMENT-RESPONSE: settled · 0.0021 USDC
-{ "result": { "findings": 2, "severity": "low" } }`,
-  },
-  {
-    url: "modulabase.org/m/medical‑triage‑lora/mcp",
-    body: `POST /m/0x1d90…e847/mcp
-Content-Type: application/json
-PAYMENT-SIGNATURE: 0x3f82…4d
-
-{
-  "jsonrpc": "2.0",
-  "id": 3,
-  "method": "tools/call",
-  "params": {
-    "name": "medical-triage-lora",
-    "arguments": {
-      "symptoms": ["chest pain", "shortness of breath"]
-    }
-  }
-}
-
-→ 200 OK
-PAYMENT-RESPONSE: settled · 0.0034 USDC
-{ "result": { "urgency": "high", "route": "ER" } }`,
-  },
+// Each entry is one line that will be appended to the scrolling log.
+// The terminal starts pre-populated and new lines keep arriving.
+const LOG_LINES = [
+  "$ modula registry list --network base",
+  "  echo-test          0xd619…387B  v1.0  ✓ live",
+  "  solidity-audit-v3  0x4a7f…b12c  v3.1  ✓ live",
+  "  medical-triage     0x1d90…e847  v2.0  ✓ live",
+  "",
+  "$ modula call 0xd619…387B --prompt 'hello, modula'",
+  "POST /m/0xd619…387B/mcp",
+  "PAYMENT-SIGNATURE: 0x7a4b…f2",
+  "→ 200 OK · settled 0.001 USDC",
+  '{ "result": { "echo": "hello, modula" } }',
+  "",
+  "$ modula call 0x4a7f…b12c --file Vault.sol",
+  "POST /m/0x4a7f…b12c/mcp",
+  "PAYMENT-SIGNATURE: 0x9c1e…a3",
+  "→ 200 OK · settled 0.0021 USDC",
+  '{ "result": { "findings": 2, "severity": "low" } }',
+  "",
+  "$ modula call 0x1d90…e847 --symptoms 'chest pain'",
+  "POST /m/0x1d90…e847/mcp",
+  "PAYMENT-SIGNATURE: 0x3f82…4d",
+  "→ 200 OK · settled 0.0034 USDC",
+  '{ "result": { "urgency": "high", "route": "ER" } }',
+  "",
+  "$ modula register --model ./lora-weights.bin --name sentiment-v1",
+  "  Uploading weights…  ████████████████  100%",
+  "  Deploying ERC-7527 token…",
+  "  tx: 0xab12…9f3e  confirmed in block 18204910",
+  "  ✓ sentiment-v1 live at 0x8f3c…aa01",
+  "",
+  "$ modula call 0x8f3c…aa01 --text 'great product'",
+  "POST /m/0x8f3c…aa01/mcp",
+  "PAYMENT-SIGNATURE: 0x2b7d…c9",
+  "→ 200 OK · settled 0.0008 USDC",
+  '{ "result": { "label": "positive", "score": 0.97 } }',
+  "",
+  "$ modula registry list --network base",
+  "  echo-test          0xd619…387B  v1.0  ✓ live",
+  "  solidity-audit-v3  0x4a7f…b12c  v3.1  ✓ live",
+  "  medical-triage     0x1d90…e847  v2.0  ✓ live",
+  "  sentiment-v1       0x8f3c…aa01  v1.0  ✓ live",
 ];
 
-/**
- * Hook — types `target` one character at a time, returns the
- * currently-visible substring. Runs forward to completion in
- * `durationMs`, then yields control. Caller composes multiple
- * instances for cycling animations.
- */
+// How many lines are visible at once in the terminal window
+const VISIBLE_LINES = 16;
+// Characters per second when typing a new line
+const CHARS_PER_SEC = 38;
+
 function useTypewriter(target: string, durationMs: number, startDelay = 0) {
   const [out, setOut] = useState("");
   useEffect(() => {
@@ -128,46 +84,83 @@ function useTypewriter(target: string, durationMs: number, startDelay = 0) {
   return out;
 }
 
-export function Hero() {
-  const toast = useToast();
-  const [copied, setCopied] = useState(false);
-  const [frame, setFrame] = useState(0);
-  const [phase, setPhase] = useState<"typing" | "holding">("typing");
+// Scrolling terminal log hook — maintains a growing array of committed
+// lines plus the currently-typing partial line. Cycles through LOG_LINES
+// indefinitely, one line at a time, scrolling old lines off the top.
+function useScrollingLog(startDelay = 0) {
+  // Start pre-populated so the terminal never looks empty
+  const preload = LOG_LINES.slice(0, VISIBLE_LINES);
+  const [committed, setCommitted] = useState<string[]>(preload);
+  const [typingLine, setTypingLine] = useState("");
+  const [typing, setTyping] = useState(false);
+  const lineIdx = useRef(VISIBLE_LINES); // next line to type
+  const started = useRef(false);
 
-  // Cycle terminal frames: type for ~3.2s, hold for ~3s, advance.
   useEffect(() => {
-    if (phase === "typing") {
-      const t = setTimeout(() => setPhase("holding"), 3200);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => {
-      setFrame((f) => (f + 1) % TERMINAL_FRAMES.length);
-      setPhase("typing");
-    }, 3000);
-    return () => clearTimeout(t);
-  }, [phase, frame]);
+    const boot = setTimeout(() => {
+      started.current = true;
+      scheduleNextLine();
+    }, startDelay);
+    return () => clearTimeout(boot);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function scheduleNextLine() {
+    const idx = lineIdx.current % LOG_LINES.length;
+    const line = LOG_LINES[idx];
+    lineIdx.current += 1;
+
+    // Pause after blank lines to give breathing room
+    const pauseMs = line === "" ? 600 : 120;
+
+    setTimeout(() => {
+      if (line === "") {
+        // Blank lines commit instantly — no typing animation
+        setCommitted((prev) => {
+          const next = [...prev, ""];
+          return next.length > VISIBLE_LINES ? next.slice(next.length - VISIBLE_LINES) : next;
+        });
+        scheduleNextLine();
+        return;
+      }
+
+      // Type the line char by char
+      const durationMs = Math.max(300, (line.length / CHARS_PER_SEC) * 1000);
+      setTyping(true);
+      setTypingLine("");
+
+      let i = 0;
+      const tick = durationMs / line.length;
+      const id = setInterval(() => {
+        i += 1;
+        setTypingLine(line.slice(0, i));
+        if (i >= line.length) {
+          clearInterval(id);
+          // Commit and clear the typing line
+          setCommitted((prev) => {
+            const next = [...prev, line];
+            return next.length > VISIBLE_LINES ? next.slice(next.length - VISIBLE_LINES) : next;
+          });
+          setTypingLine("");
+          setTyping(false);
+          scheduleNextLine();
+        }
+      }, tick);
+    }, pauseMs);
+  }
+
+  return { committed, typingLine, typing };
+}
+
+export function Hero() {
+  const { committed, typingLine, typing } = useScrollingLog(800);
 
   const headline = useTypewriter(HEADLINE, 1100, 200);
   const headlineDone = headline.length === HEADLINE.length;
 
-  const current = TERMINAL_FRAMES[frame];
-  const typedBody = useTypewriter(
-    current.body,
-    phase === "typing" ? 3200 : 0,
-    0,
-  );
-  const bodyDone = typedBody.length === current.body.length;
-
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(CONTRACT_ADDRESS);
-      setCopied(true);
-      toast.show("Contract address copied");
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      toast.show("Copy failed — select manually");
-    }
-  };
+  const terminalLines = typingLine !== ""
+    ? [...committed, typingLine]
+    : committed;
 
   const headlineDisplay = headline
     .split("\n")
@@ -184,11 +177,9 @@ export function Hero() {
         <div className="hero-stack">
           <h1 className="hero-headline" aria-label="Permissionless AI, on-chain.">
             {headlineDisplay}
-            <span
-              className="hero-caret"
-              data-blink={headlineDone ? "true" : "false"}
-              aria-hidden="true"
-            />
+            {!headlineDone && (
+              <span className="hero-caret" aria-hidden="true" />
+            )}
           </h1>
 
           <motion.p
@@ -211,39 +202,36 @@ export function Hero() {
             <Link href={siteConfig.registryPath} className="hero-btn hero-btn-primary">
               Register a model
             </Link>
-            <a href="#how" className="hero-btn hero-btn-ghost">
+            <a href="#protocol" className="hero-btn hero-btn-ghost">
               <Play size={13} fill="currentColor" />
               See how it works
             </a>
           </motion.div>
 
-          <motion.button
-            type="button"
-            onClick={onCopy}
-            className="hero-ca"
-            aria-label="Copy contract address"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: headlineDone ? 1 : 0, y: headlineDone ? 0 : 6 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeOut }}
-          >
-            <span className="hero-ca-label">CA</span>
-            <span className="hero-ca-value">{CONTRACT_ADDRESS}</span>
-            <span className="hero-ca-icon" data-copied={copied ? "true" : "false"}>
-              {copied ? (
-                <Check size={13} strokeWidth={2.6} />
-              ) : (
-                <Copy size={13} strokeWidth={2} />
-              )}
-            </span>
-          </motion.button>
-
           <motion.p
             className="hero-meta"
             initial={{ opacity: 0 }}
             animate={{ opacity: headlineDone ? 1 : 0 }}
-            transition={{ duration: 0.5, delay: 0.3, ease: easeOut }}
+            transition={{ duration: 0.5, delay: 0.2, ease: easeOut }}
           >
-            v0.11.0 &nbsp;·&nbsp; Devnet / Testnet &nbsp;·&nbsp; mainnet soon
+            v1.0.0 &nbsp;·&nbsp; Live on{" "}
+            <a
+              href="https://x.com/base"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-meta-base"
+            >
+              @Base
+            </a>
+            &nbsp;·&nbsp; Expanding to{" "}
+            <a
+              href="https://x.com/solana"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-meta-solana"
+            >
+              @Solana
+            </a>
           </motion.p>
         </div>
       </div>
@@ -260,17 +248,24 @@ export function Hero() {
             <span className="dot dot-r" />
             <span className="dot dot-y" />
             <span className="dot dot-g" />
-            <span className="hero-shot-url" key={current.url}>
-              {current.url}
+            <span className="hero-shot-url">
+              modula.sh — bash
             </span>
           </div>
           <pre className="hero-shot-code">
             <code>
-              {typedBody}
-              <span
-                className="hero-shot-caret"
-                data-active={bodyDone ? "false" : "true"}
-              />
+              {terminalLines.map((line, i) => {
+                const isLast = i === terminalLines.length - 1;
+                const isTypingLine = isLast && typingLine !== "";
+                return (
+                  <span key={i} style={{ display: "block" }}>
+                    {line}
+                    {isTypingLine && typing && (
+                      <span className="hero-shot-caret" />
+                    )}
+                  </span>
+                );
+              })}
             </code>
           </pre>
         </div>
@@ -281,6 +276,7 @@ export function Hero() {
           <span className="hero-trust-mark">x402</span>
           <span className="hero-trust-mark">MCP&nbsp;2025‑11‑25</span>
           <span className="hero-trust-mark">@Base</span>
+          <span className="hero-trust-mark hero-trust-mark-solana">@Solana</span>
         </div>
       </motion.div>
 
@@ -288,7 +284,7 @@ export function Hero() {
         .hero {
           position: relative;
           padding-block: clamp(5rem, 11vw, 9rem) 0;
-          background: #ffffff;
+          background: transparent;
           overflow: hidden;
         }
         .hero-inner {
@@ -322,14 +318,11 @@ export function Hero() {
           vertical-align: -0.08em;
           background: var(--base-blue);
           border-radius: 1px;
-          opacity: 1;
-        }
-        .hero-caret[data-blink="true"] {
-          animation: hero-caret-blink 1.05s step-end infinite;
+          animation: hero-caret-blink 0.8s step-end infinite;
         }
         @keyframes hero-caret-blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0; }
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
         }
 
         .hero-sub {
@@ -387,73 +380,6 @@ export function Hero() {
           transform: translateY(-1px);
         }
 
-        .hero-ca {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          padding: 8px 12px 8px 14px;
-          border-radius: 999px;
-          background: rgba(11, 16, 32, 0.04);
-          border: 1px solid rgba(11, 16, 32, 0.08);
-          color: rgba(11, 16, 32, 0.78);
-          font-family: var(--font-mono);
-          font-size: 12.5px;
-          letter-spacing: 0;
-          cursor: pointer;
-          transition:
-            background 0.18s var(--ease-out),
-            border-color 0.18s var(--ease-out),
-            transform 0.15s var(--ease-out);
-          margin-top: 0.4rem;
-          max-width: 100%;
-          overflow: hidden;
-        }
-        .hero-ca:hover {
-          background: rgba(11, 16, 32, 0.07);
-          border-color: rgba(11, 16, 32, 0.16);
-        }
-        .hero-ca:active {
-          transform: scale(0.985);
-        }
-        .hero-ca-label {
-          font-size: 10.5px;
-          font-weight: 600;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: var(--base-blue);
-          padding: 2px 7px;
-          border-radius: 999px;
-          background: rgba(0, 82, 255, 0.10);
-          font-family: var(--font-sans);
-        }
-        .hero-ca-value {
-          color: rgba(11, 16, 32, 0.7);
-          font-feature-settings: "tnum" 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          max-width: 60vw;
-        }
-        .hero-ca-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 22px;
-          height: 22px;
-          border-radius: 999px;
-          background: rgba(11, 16, 32, 0.06);
-          color: rgba(11, 16, 32, 0.6);
-          transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
-        }
-        .hero-ca:hover .hero-ca-icon {
-          background: rgba(11, 16, 32, 0.1);
-          color: var(--ink);
-        }
-        .hero-ca-icon[data-copied="true"] {
-          background: var(--base-blue);
-          color: #fff;
-        }
-
         .hero-meta {
           margin: 0.2rem 0 0;
           color: rgba(11, 16, 32, 0.4);
@@ -461,12 +387,26 @@ export function Hero() {
           font-size: 12px;
           letter-spacing: 0.02em;
         }
+        .hero-meta-base {
+          color: var(--base-blue);
+          font-weight: 600;
+          text-decoration: none;
+          transition: opacity 0.15s ease;
+        }
+        .hero-meta-base:hover { opacity: 0.72; }
+        .hero-meta-solana {
+          color: var(--solana);
+          font-weight: 600;
+          text-decoration: none;
+          transition: opacity 0.15s ease;
+        }
+        .hero-meta-solana:hover { opacity: 0.72; }
 
         .hero-shot-wrap {
           position: relative;
           margin-top: clamp(3.5rem, 7vw, 6rem);
           padding-inline: 16px;
-          background: linear-gradient(180deg, #ffffff 0%, #f4f6fb 100%);
+          background: linear-gradient(180deg, transparent 0%, rgba(244,246,251,0.6) 100%);
         }
         .hero-shot {
           position: relative;
@@ -517,8 +457,15 @@ export function Hero() {
           font-size: clamp(11.5px, 1.05vw, 13.5px);
           line-height: 1.65;
           white-space: pre;
-          overflow-x: auto;
-          min-height: 21em;
+          overflow: hidden;
+          /* Fixed height = 16 visible lines × line-height */
+          height: 26.4em;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+        .hero-shot-code > code {
+          display: block;
         }
         .hero-shot-caret {
           display: inline-block;
@@ -527,9 +474,6 @@ export function Hero() {
           vertical-align: -0.18em;
           background: rgba(255, 255, 255, 0.7);
           margin-left: 1px;
-          opacity: 0;
-        }
-        .hero-shot-caret[data-active="true"] {
           opacity: 0.9;
           animation: hero-shot-caret-blink 0.85s step-end infinite;
         }
@@ -558,12 +502,14 @@ export function Hero() {
           letter-spacing: -0.01em;
           color: rgba(11, 16, 32, 0.55);
         }
+        .hero-trust-mark-solana {
+          color: var(--solana);
+        }
 
         @media (max-width: 720px) {
           .hero-cta { flex-direction: column; width: 100%; max-width: 320px; }
           .hero-btn { justify-content: center; width: 100%; }
           .hero-shot-code { font-size: 11px; }
-          .hero-ca-value { font-size: 11px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
