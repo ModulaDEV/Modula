@@ -90,6 +90,23 @@ export function x402Middleware(deps: Deps): MiddlewareHandler {
 
     const payload  = decodePayment(sig);
 
+    // This middleware path handles EVM (Base) settlement only. The
+    // Solana settlement path is mounted under a separate route — when
+    // a payload arrives here with a non-EVM network, reject as a
+    // protocol mismatch rather than try to coerce types.
+    if (payload.network !== "base" && payload.network !== "base-sepolia") {
+      c.header("PAYMENT-REQUIRED", encodeRequirements(requirements));
+      return c.json(
+        {
+          error: {
+            code:    "payment_network_mismatch",
+            message: `this endpoint settles on ${deps.network}; payload network was ${payload.network}`,
+          },
+        },
+        402,
+      );
+    }
+
     // Re-derive discount using the actual payer from the signed authorization
     // (more trustworthy than the hint header).
     const payer = payload.payload.authorization.from as Address;
@@ -119,7 +136,7 @@ export function x402Middleware(deps: Deps): MiddlewareHandler {
 
     // Stash for the handler — it picks up agent + paid + record + quote.
     c.set("rpc:body", body);
-    c.set("x402:agent",   verified.payer ?? payload.payload.authorization.from);
+    c.set("x402:agent",   (verified.payer ?? payload.payload.authorization.from) as Address);
     c.set("x402:paid",    payerAmount);
     c.set("x402:record",  record);
     c.set("x402:reqs",    payerRequirements);
