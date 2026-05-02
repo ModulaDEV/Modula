@@ -9,6 +9,7 @@ import type {
   ModelDto,
   StatsDto,
   TickDto,
+  SvmCallDto,
 } from "./types.js";
 
 export interface RegistryClientOptions {
@@ -51,6 +52,23 @@ export class RegistryClient {
 
   async getStats(): Promise<StatsDto> {
     return this.json(new URL(`${this.baseUrl}/v1/stats`));
+  }
+
+  /**
+   * Paginated history of SVM-paid calls for one model.
+   *
+   * Symmetric with `recent_calls` on getModel() but covers the SVM
+   * rail and is paginated on its own endpoint. Returns base58 tx
+   * signatures and base58 payer pubkeys, not 0x EVM addresses.
+   */
+  async getSvmCalls(
+    slug: string,
+    opts: { limit?: number; offset?: number } = {},
+  ): Promise<ListResponse<SvmCallDto>> {
+    const url = new URL(`${this.baseUrl}/v1/models/${encodeURIComponent(slug)}/svm-calls`);
+    if (opts.limit !== undefined)  url.searchParams.set("limit",  String(opts.limit));
+    if (opts.offset !== undefined) url.searchParams.set("offset", String(opts.offset));
+    return this.json(url);
   }
 
   // ---------- internals ----------

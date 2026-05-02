@@ -77,6 +77,21 @@ export interface ListTicksOptions {
   limit?: number;
 }
 
+/**
+ * One row from /v1/models/:slug/svm-calls — a single SVM-paid
+ * inference call. Symmetric with CallDto (the EVM equivalent) but
+ * with base58 fields where EVM uses 0x hex.
+ */
+export interface SvmCallDto {
+  tx_signature: string;                 // base58 Solana tx signature
+  agent_pubkey: string;                 // base58 payer pubkey
+  paid_usdc:    string;                 // exact 6dp ("1.500000")
+  network:      "solana" | "solana-devnet";
+  slot:         number;
+  ts:           string;                 // ISO-8601
+  latency_ms:   number | null;
+}
+
 export interface MCPToolDescriptor {
   name:         string;
   title?:       string;
