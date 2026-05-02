@@ -12,6 +12,7 @@ import {
   Layers,
   Book,
   ArrowUpRight,
+  Sparkles,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { siteConfig } from "@/site.config";
@@ -21,6 +22,7 @@ const NAV_LINKS = [
   { href: "/registry", label: "Registry", Icon: Boxes },
   { href: "/#economics", label: "Economics", Icon: Coins },
   { href: "/#agents", label: "Agents", Icon: Bot },
+  { href: "/solana", label: "Solana", Icon: Sparkles },
   { href: "/whitepaper", label: "Whitepaper", Icon: FileText },
   { href: "/#faq", label: "FAQ", Icon: HelpCircle },
 ] as const;
