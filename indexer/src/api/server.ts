@@ -16,6 +16,7 @@ import { models }    from "./routes/models.js";
 import { ticks }     from "./routes/ticks.js";
 import { revenue }   from "./routes/revenue.js";
 import { stats }     from "./routes/stats.js";
+import { svmCalls }  from "./routes/svm-calls.js";
 import { openapi }   from "./routes/openapi.js";
 import { jsonError } from "./errors.js";
 import type { Config }       from "../config.js";
@@ -39,6 +40,7 @@ export function createApi(deps: ApiDeps): Hono {
   app.route("/v1/models",                models(deps));
   app.route("/v1/models/:slug/ticks",    ticks(deps));
   app.route("/v1/models/:slug/revenue",  revenue(deps));
+  app.route("/v1/models",                svmCalls(deps));   // mounts /:slug/svm-calls
   app.route("/v1/stats",                 stats(deps));
   app.route("/",                         openapi(deps));
 
