@@ -56,16 +56,27 @@ export interface PaymentRequirements {
   extra?:            Record<string, unknown>;
 }
 
-/// @notice The signed payload the client returns in `PAYMENT-SIGNATURE`.
-export interface PaymentPayload {
+/**
+ * Discriminated union — the payload shape varies by network family.
+ * EVM networks carry an EIP-3009 authorization; SVM networks carry a
+ * pre-signed SPL Token-2022 transfer transaction.
+ */
+export type PaymentPayload = EvmPaymentPayload | SvmPaymentPayload;
+
+export interface EvmPaymentPayload {
   scheme:  X402Scheme;
-  network: X402Network;
+  network: "base" | "base-sepolia";
   payload: ExactEvmPayload;
 }
 
+export interface SvmPaymentPayload {
+  scheme:  X402Scheme;
+  network: "solana" | "solana-devnet";
+  payload: ExactSvmPayload;
+}
+
 /// @notice EIP-3009 transferWithAuthorization fields plus the v/r/s
-///         signature. Modula consumes only this `exact` scheme variant
-///         in v1.
+///         signature.
 export interface ExactEvmPayload {
   signature:        `0x${string}`;
   authorization: {
@@ -78,11 +89,31 @@ export interface ExactEvmPayload {
   };
 }
 
+/**
+ * SVM `exact` scheme — a partially-signed SPL Token-2022 transfer
+ * transaction. The client constructs the SPL transfer, signs it with
+ * the payer keypair (or a wallet-adapter-provided signer), and sends
+ * the base64-encoded transaction bytes to the gateway.
+ *
+ * The facilitator verifies the signature, simulates the transfer,
+ * and on /settle submits it to the cluster. The payer pubkey is
+ * recovered from the signed transaction's signers list.
+ */
+export interface ExactSvmPayload {
+  /// @notice Base64-encoded VersionedTransaction or legacy Transaction
+  ///         bytes. The transaction must transfer exactly
+  ///         `maxAmountRequired` of the SPL `asset` mint to `payTo`.
+  transaction:  string;
+  /// @notice Payer pubkey (base58). Redundant with the tx signers list
+  ///         but included for cheap pre-flight checks before deserializing.
+  payer:        string;
+}
+
 /// @notice Returned by the facilitator's /verify.
 export interface FacilitatorVerify {
   isValid:        boolean;
   invalidReason?: string;
-  payer?:         `0x${string}`;
+  payer?:         WireAddress;
 }
 
 /// @notice Returned by the facilitator's /settle. Encoded back into
@@ -90,7 +121,8 @@ export interface FacilitatorVerify {
 export interface FacilitatorSettle {
   success:    boolean;
   errorReason?: string;
-  txHash?:    `0x${string}`;
+  /// @notice EVM: 0x-prefixed 32-byte tx hash. SVM: base58 tx signature.
+  txHash?:    string;
   networkId:  number;
-  payer?:     `0x${string}`;
+  payer?:     WireAddress;
 }
