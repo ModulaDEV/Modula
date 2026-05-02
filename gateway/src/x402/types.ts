@@ -22,6 +22,16 @@ export type X402Network =
   | "solana"
   | "solana-devnet";
 
+/// @notice True when the network settles on an EVM chain.
+export function isEvmNetwork(n: X402Network): n is "base" | "base-sepolia" {
+  return n === "base" || n === "base-sepolia";
+}
+
+/// @notice True when the network settles on Solana (mainnet or devnet).
+export function isSvmNetwork(n: X402Network): n is "solana" | "solana-devnet" {
+  return n === "solana" || n === "solana-devnet";
+}
+
 /// @notice The 402-response payload the server returns when payment is missing.
 ///         Base64 of this lands in the `PAYMENT-REQUIRED` header.
 export interface PaymentRequirements {
