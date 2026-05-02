@@ -20,6 +20,7 @@ const COLS = [
       { href: "/#protocol",   label: "How it works" },
       { href: "/#economics",  label: "Token economics" },
       { href: "/#agents",     label: "MCP interface" },
+      { href: "/solana",      label: "Solana expansion" },
       { href: siteConfig.whitepaperPath, label: "Whitepaper" },
     ],
   },
