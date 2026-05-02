@@ -25,6 +25,8 @@ import { RegistryClient } from "./registry.js";
 import { GatewayClient }  from "./gateway.js";
 import { type AutoPaySigner } from "./autopay.js";
 import { getOrCreateWallet, clearWallet, fundFromFaucet, type WalletOptions } from "./wallet.js";
+import { type SvmTransferBuilder } from "./svm-autopay.js";
+import { type SvmSigner } from "./svm-types.js";
 
 export interface ModulaOptions {
   /** URL of @modula/indexer (read API). */
@@ -120,6 +122,38 @@ export class Modula {
     const model = await this.models.get(slug);
     yield* this.gateway.streamTool(model.agency, toolName, args, signer);
   }
+
+  /**
+   * Discover a model by slug, call one of its tools, and auto-pay on
+   * the SVM (Solana) settlement path. Mirrors `call()` but signs an
+   * SPL Token-2022 transfer instead of an EIP-3009 authorization.
+   *
+   * Requires a buildTransfer function that knows how to construct an
+   * SPL transfer for the configured cluster — typically imported
+   * from @modula/sdk-solana, but any conformant builder works.
+   *
+   * @param slug           Registry slug, e.g. "solidity-audit-v3"
+   * @param toolName       MCP tool name exposed by that model
+   * @param args           Tool arguments
+   * @param signer         SvmSigner ({ publicKey, signTransaction })
+   * @param buildTransfer  SVM transfer builder
+   */
+  async callSvm(
+    slug: string,
+    toolName: string,
+    args: unknown,
+    signer: SvmSigner,
+    buildTransfer: SvmTransferBuilder,
+  ) {
+    const model = await this.models.get(slug);
+    return this.gateway.callToolSvmWithAutoPay(
+      model.agency,
+      toolName,
+      args,
+      signer,
+      buildTransfer,
+    );
+  }
 }
 
 export { RegistryClient, GatewayClient };
@@ -127,3 +161,6 @@ export * from "./types.js";
 export * from "./autopay.js";
 export * from "./wallet.js";
 export * from "./pipeline.js";
+export * from "./svm-types.js";
+export * from "./svm-amount.js";
+export * from "./svm-autopay.js";
