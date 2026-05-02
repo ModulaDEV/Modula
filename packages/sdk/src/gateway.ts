@@ -13,6 +13,12 @@ import {
   type MCPToolDescriptor,
 } from "./types.js";
 import { signPayment, decodeRequirements, type AutoPaySigner } from "./autopay.js";
+import {
+  svmSignPayment,
+  svmDecodeRequirements,
+  type SvmTransferBuilder,
+} from "./svm-autopay.js";
+import type { SvmSigner } from "./svm-types.js";
 
 export interface GatewayClientOptions {
   /** Base URL of the gateway, e.g. "https://mcp.modulabase.org". */
@@ -105,6 +111,32 @@ export class GatewayClient {
         paymentSignature,
         signal: opts.signal,
       });
+    }
+  }
+
+  /**
+   * Call a tool via the SVM (Solana) settlement path. Mirrors
+   * callToolWithAutoPay but signs an SPL Token-2022 transfer via the
+   * provided buildTransfer function instead of an EIP-3009 auth.
+   *
+   * Routes to POST /m/:agency/mcp/svm — the gateway must be running
+   * with SVM_ENABLED=true. If it isn't, the call returns 404.
+   */
+  async callToolSvmWithAutoPay(
+    agency: string,
+    name: string,
+    args: unknown,
+    signer: SvmSigner,
+    buildTransfer: SvmTransferBuilder,
+    opts: AutoPayOptions = {},
+  ): Promise<MCPCallResult> {
+    try {
+      return await this._svmRpc<MCPCallResult>(agency, name, args, undefined, opts.signal);
+    } catch (err) {
+      if (!(err instanceof PaymentRequiredError)) throw err;
+      const reqs = svmDecodeRequirements(err.requirementsBase64);
+      const paymentSignature = await svmSignPayment(reqs, signer, buildTransfer);
+      return this._svmRpc<MCPCallResult>(agency, name, args, paymentSignature, opts.signal);
     }
   }
 
@@ -228,6 +260,60 @@ export class GatewayClient {
 
     const text = await res.text();
     let json:  JsonRpcResponse<T>;
+    try {
+      json = JSON.parse(text) as JsonRpcResponse<T>;
+    } catch {
+      throw new Error(`Modula gateway ${res.status}: non-JSON response · ${text.slice(0, 200)}`);
+    }
+
+    if (json.error) {
+      throw new Error(`Modula gateway ${json.error.code}: ${json.error.message}`);
+    }
+    if (json.result === undefined) {
+      throw new Error("Modula gateway returned no result");
+    }
+    return json.result;
+  }
+
+  /**
+   * SVM-rail RPC. Posts to /m/:agency/mcp/svm with an optional
+   * pre-signed PAYMENT-SIGNATURE. On 402, throws PaymentRequiredError
+   * with the base64 requirements so the caller can sign and retry.
+   */
+  private async _svmRpc<T>(
+    agency: string,
+    name: string,
+    args: unknown,
+    paymentSignature: string | undefined,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    const url = `${this.baseUrl}/m/${agency}/mcp/svm`;
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      accept:         "application/json",
+    };
+    if (this.bearer)        headers["authorization"]      = `Bearer ${this.bearer}`;
+    if (paymentSignature)   headers["PAYMENT-SIGNATURE"]  = paymentSignature;
+
+    const res = await this.fetchFn(url, {
+      method: "POST",
+      headers,
+      signal,
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id:      this.nextId++,
+        method:  "tools/call",
+        params:  { name, arguments: args },
+      }),
+    });
+
+    if (res.status === 402) {
+      const requirements = res.headers.get("PAYMENT-REQUIRED") ?? "";
+      throw new PaymentRequiredError(requirements, url);
+    }
+
+    const text = await res.text();
+    let json: JsonRpcResponse<T>;
     try {
       json = JSON.parse(text) as JsonRpcResponse<T>;
     } catch {
