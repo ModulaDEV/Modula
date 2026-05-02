@@ -36,4 +36,20 @@ export const FAQ: readonly FaqItem[] = [
     q: "Is the code open source?",
     a: "Yes. Modula is released under the MIT license and every contract and SDK is published on GitHub. Read, fork, audit, and self-host anything you want.",
   },
+  {
+    q: "Why are you expanding to Solana?",
+    a: "Two reasons. First, x402 already supports USDC settlement on Solana natively — this is extending existing infrastructure, not rebuilding it. Second, Solana has sub-second finality and fraction-of-a-cent fees, which matter when an agent is calling models thousands of times a day. Base is home. Solana is expansion. Adding, not migrating.",
+  },
+  {
+    q: "Is the Solana token the same as $MODULA on Base?",
+    a: "No. They are two separate tokens. $MODULA on Base is the protocol token — unchanged, unaffected, still the same address and the same holder discount. The Solana token is a separate Solana-native token with its own utility on Solana-settled inference. Two tokens, one protocol, both with real utility.",
+  },
+  {
+    q: "Are you abandoning Base?",
+    a: "No. Base is home. Core contracts, the model registry, the SDK, and $MODULA all stay on Base. All future development continues on Base. Solana is additive — one protocol with two settlement layers, not two competing products.",
+  },
+  {
+    q: "Does the Solana expansion dilute Base $MODULA holders?",
+    a: "No. Base $MODULA is unchanged — same supply, same holder discount, same address. The Solana expansion drives more total volume through the protocol, which strengthens both sides. Models registered on Base earn from agents on both chains.",
+  },
 ];
