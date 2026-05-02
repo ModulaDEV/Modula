@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Solana expansion (gateway + SDK scaffolding)
+- **Gateway SVM x402 settlement path:** new `POST /m/:agency/mcp/svm`
+  route mounted behind `SVM_ENABLED` flag. Verifies signed SPL
+  Token-2022 USDC transfers via a remote SVM facilitator.
+- New gateway modules under `gateway/src/svm/`: constants, pubkey
+  validator, payment codec, cluster lookups, amount helpers, error
+  taxonomy, facilitator client, middleware, public barrel.
+- New gateway route `gateway/src/routes/mcp-svm.ts` mirroring the
+  EVM MCP dispatcher.
+- New gateway env vars: `SVM_ENABLED`, `SVM_NETWORK`, `SVM_RPC_URL`,
+  `SVM_X402_FACILITATOR_URL`, `SVM_X402_FACILITATOR_API_KEY`.
+- `/healthz` now reports settlement mount status (EVM + SVM).
+- **SDK SVM autopay:** `Modula.callSvm()`,
+  `GatewayClient.callToolSvmWithAutoPay()`, `svmSignPayment`,
+  `svmDecodeRequirements`, `SvmSigner`, `SvmTransferBuilder`,
+  `svmToBaseUnits`, `svmFromBaseUnits`.
+- SDK now has a vitest suite (17 tests across 2 files).
+- 23 new gateway tests across pubkey, codec, cluster, amount,
+  middleware, healthz.
+- New `SOLANA.md` architecture doc; README banner + Solana badge.
+
 ## [0.5.0] - 2026-04-26
 
 ### Added
