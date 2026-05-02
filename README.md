@@ -8,12 +8,13 @@
 
 ### *The tokenized AI model registry.*
 
-**Permissionless · On-chain · Agent-native · Built on [@Base](https://base.org)**
+**Permissionless · On-chain · Agent-native · Built on [@Base](https://base.org), expanding to [@Solana](https://solana.com)**
 
 <br/>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-0052FF?style=for-the-badge&labelColor=0b1020)](./LICENSE)
 [![Built on Base](https://img.shields.io/badge/Built_on-Base-0052FF?style=for-the-badge&logo=coinbase&logoColor=white&labelColor=0b1020)](https://base.org)
+[![Expanding to Solana](https://img.shields.io/badge/Expanding_to-Solana-7B61FF?style=for-the-badge&logo=solana&logoColor=white&labelColor=0b1020)](./SOLANA.md)
 [![ERC-7527](https://img.shields.io/badge/Standard-ERC--7527-0052FF?style=for-the-badge&labelColor=0b1020)](https://eips.ethereum.org/EIPS/eip-7527)
 [![x402](https://img.shields.io/badge/Payments-x402-0052FF?style=for-the-badge&labelColor=0b1020)](https://www.x402.org/)
 [![MCP](https://img.shields.io/badge/Agents-MCP-0052FF?style=for-the-badge&labelColor=0b1020)](https://modelcontextprotocol.io)
@@ -30,6 +31,23 @@
 ### [🌐 modulabase.org](https://www.modulabase.org) · [𝕏 @modulabase](https://x.com/modulabase) · [📄 Whitepaper](https://www.modulabase.org/whitepaper) · [🧭 Registry](https://www.modulabase.org/registry) · [📘 Docs](https://www.modulabase.org/docs)
 
 </div>
+
+---
+
+> ### 🟣 Modula is expanding to Solana
+>
+> **Base is home. Solana is expansion. Adding, not migrating.**
+>
+> Core contracts, the model registry, and `$MODULA` stay on Base — unchanged.
+> Solana adds a second x402 settlement path so agents on SVM can pay
+> Modula models in USDC. Models register once on Base and are callable
+> from agents on either chain.
+>
+> A separate **Solana-native token** (not bridged, not wrapped, not `$MODULA`)
+> ships on PumpFun with its own utility for Solana-settled inference.
+> **Two tokens, one protocol, both with real utility.**
+>
+> 📖 Full architecture: **[SOLANA.md](./SOLANA.md)**
 
 ---
 
