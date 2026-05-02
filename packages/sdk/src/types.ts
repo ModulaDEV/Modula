@@ -45,9 +45,21 @@ export interface CallDto {
   ts:         string;
 }
 
+/**
+ * Cross-rail counts for one model. Returned alongside the unified
+ * top-level totals on /v1/models/:slug and /v1/stats so dashboards
+ * can render either rail independently.
+ */
+export interface RailBreakdown {
+  evm: { total_calls: number; total_paid_usdc: string };
+  svm: { total_calls: number; total_paid_usdc: string };
+}
+
 export interface ModelDetailDto extends ModelDto {
   recent_ticks: TickDto[];
   recent_calls: CallDto[];
+  /// EVM + SVM breakdown of `calls` and `total_paid_usdc`.
+  by_rail:      RailBreakdown;
 }
 
 export interface ListResponse<T> {
@@ -61,6 +73,8 @@ export interface StatsDto {
   total_models:      number;
   total_calls:       number;
   total_usdc_routed: string;
+  /// EVM + SVM breakdown of `total_calls` and `total_usdc_routed`.
+  by_rail:           RailBreakdown;
 }
 
 export interface ListModelsOptions {
