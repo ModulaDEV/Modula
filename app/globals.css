@@ -36,6 +36,12 @@
   --brand-border-strong: rgba(0, 82, 255, 0.4);
   --brand-glow: rgba(0, 82, 255, 0.28);
 
+  /* Solana accent — used only for expansion-related UI (Solana chip,
+     dual-chain badges). Base blue stays the primary brand color. */
+  --solana: #7B61FF;
+  --solana-soft: rgba(123, 97, 255, 0.10);
+  --solana-border: rgba(123, 97, 255, 0.28);
+
   /* Structure */
   --border: rgba(11, 16, 32, 0.08);
   --border-strong: rgba(11, 16, 32, 0.14);
