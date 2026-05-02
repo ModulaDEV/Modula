@@ -39,7 +39,11 @@ describe("/v1/stats", () => {
     expect(body).toEqual({
       total_models:      0,
       total_calls:       0,
-      total_usdc_routed: "0",
+      total_usdc_routed: "0.000000",
+      by_rail: {
+        evm: { total_calls: 0, total_paid_usdc: "0" },
+        svm: { total_calls: 0, total_paid_usdc: "0.000000" },
+      },
     });
   });
 
@@ -78,5 +82,8 @@ describe("/v1/stats", () => {
     expect(body.total_models).toBe(2);
     expect(body.total_calls).toBe(3);
     expect(parseFloat(body.total_usdc_routed)).toBeCloseTo(3.75, 6);
+    // EVM-only fixture — SVM rail should still be at zero.
+    expect(body.by_rail.evm.total_calls).toBe(3);
+    expect(body.by_rail.svm.total_calls).toBe(0);
   });
 });
