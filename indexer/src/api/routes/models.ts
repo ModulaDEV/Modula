@@ -16,6 +16,8 @@ import { z }    from "zod";
 
 import { serializeModel, serializeTick, serializeCall, type ModelRow, type TickRow, type CallRow } from "../serializers.js";
 import { NotFound, BadRequest } from "../errors.js";
+import { svmCallTotalsForModel } from "../svm-stats.js";
+import { sumUsdc } from "../decimal.js";
 import type { Database } from "../../db.js";
 
 interface Deps { db: Database }
@@ -202,8 +204,24 @@ export function models(deps: Deps): Hono {
     const row = rows[0];
     if (!row) throw NotFound(`model ${slug}`);
 
+    // Cross-rail revenue: sum EVM + SVM totals for this model. The
+    // top-level `calls` and `total_paid_usdc` fields stay as the
+    // sum so existing clients see the unified number; `by_rail`
+    // exposes the per-rail breakdown for dashboards that want it.
+    const svm = await svmCallTotalsForModel(deps.db.pool, row.id);
+    const evmCalls = row.calls !== undefined ? Number(row.calls) : 0;
+    const evmUsdc  = row.total_paid_usdc ?? "0";
+
+    const serialized = serializeModel(row);
+
     return c.json({
-      ...serializeModel(row),
+      ...serialized,
+      calls:           evmCalls + svm.total_calls,
+      total_paid_usdc: sumUsdc(evmUsdc, svm.total_paid_usdc),
+      by_rail: {
+        evm: { total_calls: evmCalls,        total_paid_usdc: evmUsdc },
+        svm: { total_calls: svm.total_calls, total_paid_usdc: svm.total_paid_usdc },
+      },
       recent_ticks: ticks.map(serializeTick),
       recent_calls: calls.map(serializeCall),
     });
