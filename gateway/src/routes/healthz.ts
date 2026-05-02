@@ -13,11 +13,26 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import type { AppDeps } from "../app.js";
 
-export function healthz(_deps: AppDeps): Hono {
+export function healthz(deps: AppDeps): Hono {
   const app = new Hono();
 
+  const settlementMounts = () => ({
+    evm: {
+      enabled: true,
+      network: deps.config.CHAIN === "baseSepolia" ? "base-sepolia" : "base",
+    },
+    svm: deps.config.SVM_ENABLED
+      ? { enabled: true, network: deps.config.SVM_NETWORK }
+      : { enabled: false },
+  });
+
   const live = (c: Context) =>
-    c.json({ status: "live", uptime: process.uptime(), pid: process.pid });
+    c.json({
+      status:     "live",
+      uptime:     process.uptime(),
+      pid:        process.pid,
+      settlement: settlementMounts(),
+    });
 
   app.get("/", live);
   app.get("/live", live);
@@ -26,7 +41,7 @@ export function healthz(_deps: AppDeps): Hono {
     // We'll hook into chain reads in a later commit. For now we report
     // ready=true unconditionally; the readiness check upgrades to a
     // real RPC ping when src/chain/clients.ts lands.
-    return c.json({ status: "ready" });
+    return c.json({ status: "ready", settlement: settlementMounts() });
   });
 
   return app;
