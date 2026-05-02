@@ -32,14 +32,22 @@ export function isSvmNetwork(n: X402Network): n is "solana" | "solana-devnet" {
   return n === "solana" || n === "solana-devnet";
 }
 
+/**
+ * Wire address format. EVM addresses are 0x-prefixed 40-hex; SVM
+ * addresses are base58-encoded 32-byte public keys. The codec layer
+ * never coerces between the two — the caller picks the right shape
+ * based on `network`.
+ */
+export type WireAddress = string;
+
 /// @notice The 402-response payload the server returns when payment is missing.
 ///         Base64 of this lands in the `PAYMENT-REQUIRED` header.
 export interface PaymentRequirements {
   scheme:            X402Scheme;
   network:           X402Network;
   maxAmountRequired: string;          // base units (decimal string)
-  asset:             `0x${string}`;   // ERC-20 contract — USDC for us
-  payTo:             `0x${string}`;   // creator treasury
+  asset:             WireAddress;     // EVM: ERC-20 USDC · SVM: SPL mint pubkey
+  payTo:             WireAddress;     // creator treasury (EVM addr or SVM pubkey)
   resource:          string;          // canonical URL of the resource
   description:       string;          // human-readable purpose
   mimeType:          string;          // expected response content-type
