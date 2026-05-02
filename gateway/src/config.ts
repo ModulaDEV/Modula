@@ -38,6 +38,19 @@ const Schema = z.object({
   X402_FACILITATOR_URL:     z.string().url().default("https://x402.org/facilitator"),
   X402_FACILITATOR_API_KEY: z.string().min(1).optional(),
 
+  // --- Solana settlement (SVM x402 path) ---
+  // Optional. When unset the gateway runs EVM-only and rejects any
+  // request to /m/:agency/mcp/svm with a 503. When set, the SVM
+  // facilitator is wired up and the SVM route accepts payments.
+  SVM_ENABLED: z
+    .union([z.boolean(), z.string()])
+    .default(false)
+    .transform((v) => v === true || v === "true" || v === "1"),
+  SVM_NETWORK:  z.enum(["solana", "solana-devnet"]).default("solana-devnet"),
+  SVM_RPC_URL:  z.string().url().optional(),
+  SVM_X402_FACILITATOR_URL:     z.string().url().optional(),
+  SVM_X402_FACILITATOR_API_KEY: z.string().min(1).optional(),
+
   // $MODULA token — set after TGE. Holder discount is disabled when unset.
   MODULA_TOKEN_ADDRESS: HexAddress.optional(),
 
