@@ -52,6 +52,18 @@ const Schema = z.object({
   // but possible pre-finality; raise this on production for safety.
   CONFIRMATIONS: z.coerce.number().int().min(0).default(0),
 
+  // --- SVM event source (Solana settlement indexing) ---
+  // Disabled by default. When enabled, the indexer polls the Solana
+  // cluster for SPL USDC transfers to known model treasury ATAs and
+  // writes them to svm_calls.
+  SVM_ENABLED: z
+    .union([z.boolean(), z.string()])
+    .default(false)
+    .transform((v) => v === true || v === "true" || v === "1"),
+  SVM_NETWORK:          z.enum(["solana", "solana-devnet"]).default("solana-devnet"),
+  SVM_RPC_URL:          z.string().url().optional(),
+  SVM_POLL_INTERVAL_MS: z.coerce.number().int().min(1_000).default(5_000),
+
   LOG_LEVEL: z
     .enum(["trace", "debug", "info", "warn", "error", "fatal"])
     .default("info"),
