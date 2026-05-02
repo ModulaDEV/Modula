@@ -196,23 +196,63 @@ All of the following have landed on `main`:
 - `gateway/src/svm/pubkey.ts` — pure-TS base58 pubkey shape validator (12 tests)
 - `gateway/src/svm/codec.ts` — `decodeSvmPayload()` for `PAYMENT-SIGNATURE` (11 tests)
 - `gateway/src/svm/cluster.ts` — `usdcMintFor`, `defaultRpcUrlFor`, `clusterDisplayName` (7 tests)
+- `gateway/src/svm/amount.ts` — `toBaseUnits` / `fromBaseUnits` (12 tests)
+- `gateway/src/svm/errors.ts` — `WrongRecipient`, `WrongAmount`, `StaleBlockhash`, `WrongMint`, `PayerMismatch`
 - `gateway/src/svm/facilitator.ts` — `SvmFacilitatorClient` HTTP shim
-- `gateway/src/svm/middleware.ts` — `svmMiddleware` x402 settlement gate
+- `gateway/src/svm/middleware.ts` — `svmMiddleware` x402 settlement gate (3 tests)
+- `gateway/src/svm/index.ts` — public barrel
 - `gateway/src/routes/mcp-svm.ts` — `POST /m/:agency/mcp/svm` MCP dispatcher
+- `gateway/src/routes/healthz.ts` — exposes settlement mount status (5 tests)
 - `gateway/src/app.ts` — `SVM_ENABLED` flag wires the route on demand
 - `gateway/src/config.ts` — `SVM_ENABLED`, `SVM_NETWORK`, `SVM_RPC_URL`,
   `SVM_X402_FACILITATOR_URL`, `SVM_X402_FACILITATOR_API_KEY`
 
-What is **not** yet wired:
+### SDK SVM scaffolding — what is in the repo today
+
+- `packages/sdk/src/svm-types.ts` — `SvmSigner`, `SvmPaymentRequirements`, `SvmNetwork`
+- `packages/sdk/src/svm-amount.ts` — `svmToBaseUnits` / `svmFromBaseUnits` (11 tests)
+- `packages/sdk/src/svm-autopay.ts` — `svmSignPayment`, `svmDecodeRequirements`,
+  `SvmTransferBuilder` (6 tests)
+- `packages/sdk/src/gateway.ts` — `callToolSvmWithAutoPay` + `_svmRpc`
+- `packages/sdk/src/index.ts` — `modula.callSvm()` top-level convenience
+- First-ever SDK vitest suite (17 tests across 2 files)
+
+### Indexer SVM scaffolding — what is in the repo today
+
+- `indexer/migrations/007_svm.sql` — `svm_calls` + `svm_indexer_cursor` tables
+- `indexer/src/svm/constants.ts` — cluster constants
+- `indexer/src/svm/cursor.ts` — `SvmCursor`, `loadSvmCursor`, `saveSvmCursor`
+- `indexer/src/svm/calls.ts` — `recordSvmCall` (idempotent on tx_signature PK)
+- `indexer/src/svm/poll.ts` — `startSvmPoll` + `pollOnce` orchestrator (4 tests)
+- `indexer/src/svm/index.ts` — public barrel
+- `indexer/src/api/svm-stats.ts` — `svmCallTotals`, `svmCallTotalsForModel`
+- `indexer/src/api/decimal.ts` — exact 6-decimal `sumUsdc` (8 tests)
+- `indexer/src/api/routes/stats.ts` — `/v1/stats` now sums EVM + SVM with `by_rail` breakdown
+- `indexer/src/config.ts` — `SVM_ENABLED`, `SVM_NETWORK`, `SVM_RPC_URL`, `SVM_POLL_INTERVAL_MS`
+
+### Site
+
+- `app/solana/page.tsx` — dual-rail expansion landing page
+- `components/Nav.tsx` — top nav has a Solana link
+- `components/Footer.tsx` — footer Protocol column has a Solana link
+- `app/sitemap.ts` — `/solana` listed at priority 0.85
+
+### What is **not** yet wired
+
 - An actual SVM x402 facilitator deployment (the gateway talks to one over
   HTTP — when that endpoint exists, set `SVM_X402_FACILITATOR_URL` and
   flip `SVM_ENABLED=true`).
-- The Solana-side SDK adapter.
+- A real `SvmRpcClient` implementation backed by `@solana/web3.js`
+  (the indexer's poll loop has the interface and uses it; production
+  needs a concrete client wired in).
+- The default `SvmTransferBuilder` (ships in the future
+  `@modula/sdk-solana` sub-package).
 - The on-chain access logger for SVM tx signatures (the EVM
-  AccessRouter expects `bytes32`, not base58 — needs a registry-side
+  `AccessRouter` expects `bytes32`, not base58 — needs a registry-side
   upgrade).
 - Per-model SVM treasury column on the registry (today the EVM treasury
   address is reused as a placeholder).
+- The Solana-native token contract (PumpFun launch, days out).
 
 ---
 
