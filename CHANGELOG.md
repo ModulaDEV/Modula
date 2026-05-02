@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Solana expansion (cross-rail aggregations + indexer poll loop)
+- New SDK call `RegistryClient.getSvmCalls(slug, opts)` reads the
+  paginated SVM call history per model.
+- `ModelDetailDto.by_rail` and `StatsDto.by_rail` exposed on both the
+  SDK and frontend `lib/api.ts` types — EVM + SVM breakdown.
+- New indexer route `GET /v1/models/:slug/svm-calls` for paginated
+  SVM-paid call history.
+- `/v1/models/:slug` now returns cross-rail `calls` + `total_paid_usdc`
+  with a `by_rail` breakdown (mirrors the earlier `/v1/stats` change).
+- New `/solana` page on the site with status checklist + dual-rail
+  explainer; nav and footer links to it.
+- Indexer SVM poll loop scaffolded (`startSvmPoll`, `pollOnce`,
+  `SvmRpcClient` interface, 4 tests).
+- New `TESTING.md` with per-package commands and 79-test SVM
+  coverage table.
+- CI fix for the stats test that broke when the response shape
+  added `by_rail`.
+
 ### Added — Solana expansion (gateway + SDK scaffolding)
 - **Gateway SVM x402 settlement path:** new `POST /m/:agency/mcp/svm`
   route mounted behind `SVM_ENABLED` flag. Verifies signed SPL
