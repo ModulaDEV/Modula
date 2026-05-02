@@ -8,6 +8,7 @@
 import { Hono } from "hono";
 import type { Database } from "../../db.js";
 import { svmCallTotals } from "../svm-stats.js";
+import { sumUsdc }       from "../decimal.js";
 
 interface Deps { db: Database }
 
@@ -39,7 +40,7 @@ export function stats(deps: Deps): Hono {
     // per-rail breakdown so dashboards can chart them separately
     // without doing the math themselves.
     const total_calls       = evmCalls + svm.total_calls;
-    const total_usdc_routed = sumDecimal(evmUsdc, svm.total_paid_usdc);
+    const total_usdc_routed = sumUsdc(evmUsdc, svm.total_paid_usdc);
 
     return c.json({
       total_models:      Number(r?.total_models ?? "0"),
@@ -55,19 +56,3 @@ export function stats(deps: Deps): Hono {
   return app;
 }
 
-/**
- * Sum two exact 6-decimal USDC strings without bigint conversion.
- * Postgres NUMERIC(38,6) round-trips as a string, so we keep the
- * arithmetic in string-decimal space to preserve the exact representation.
- */
-function sumDecimal(a: string, b: string): string {
-  const SCALE = 1_000_000n;
-  const toUnits = (s: string): bigint => {
-    const [whole, frac = ""] = s.split(".");
-    return BigInt((whole ?? "0") + frac.padEnd(6, "0").slice(0, 6));
-  };
-  const sum = toUnits(a) + toUnits(b);
-  const whole = sum / SCALE;
-  const frac  = sum % SCALE;
-  return `${whole.toString()}.${frac.toString().padStart(6, "0")}`;
-}
